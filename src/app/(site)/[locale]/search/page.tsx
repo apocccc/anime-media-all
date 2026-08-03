@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { searchArticles } from "@/lib/data";
+import { toDbLocale } from "@/lib/locale";
 import { ArticleCard } from "@/components/site/ArticleCard";
 import { Pagination } from "@/components/site/Pagination";
 import { SectionHeading } from "@/components/site/SectionHeading";
@@ -34,7 +35,7 @@ export default async function SearchPage({
   const t = await getTranslations();
 
   const { items, total } = query
-    ? await searchArticles(query, page, PER_PAGE)
+    ? await searchArticles(toDbLocale(locale), query, page, PER_PAGE)
     : { items: [], total: 0 };
 
   return (

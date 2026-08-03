@@ -31,13 +31,14 @@ export default async function RssFeedsPage() {
       },
     }),
     prisma.category.findMany({
-      where: { slug: { not: "latest" } },
+      where: { slug: { notIn: ["latest", "fan"] } },
       orderBy: { order: "asc" },
+      include: { translations: true },
     }),
   ]);
 
-  const fmt = new Intl.DateTimeFormat("zh-TW", {
-    timeZone: "Asia/Taipei",
+  const fmt = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
@@ -98,7 +99,7 @@ export default async function RssFeedsPage() {
                 >
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.nameZh}
+                      {c.translations.find((t) => t.locale === "ja")?.name ?? c.slug}
                     </option>
                   ))}
                 </select>
@@ -216,7 +217,7 @@ export default async function RssFeedsPage() {
         >
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.nameZh}
+              {c.translations.find((t) => t.locale === "ja")?.name ?? c.slug}
             </option>
           ))}
         </select>

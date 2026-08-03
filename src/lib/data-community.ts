@@ -158,6 +158,30 @@ export function getFanPost(id: string) {
   );
 }
 
+/** ファン投稿の mediaIds を Media レコードに解決する */
+export function getMediaByIds(ids: string[]) {
+  if (ids.length === 0) return Promise.resolve([]);
+  return safe(
+    () => prisma.media.findMany({ where: { id: { in: ids } } }),
+    []
+  );
+}
+
+/** 一覧表示用: 各投稿の先頭画像URLを引く */
+export async function firstMediaUrls(
+  posts: { id: string; mediaIds: string[] }[]
+): Promise<Map<string, string>> {
+  const ids = [...new Set(posts.flatMap((p) => p.mediaIds.slice(0, 1)))];
+  const media = await getMediaByIds(ids);
+  const byId = new Map(media.map((m) => [m.id, m.url]));
+  const result = new Map<string, string>();
+  for (const p of posts) {
+    const url = p.mediaIds[0] ? byId.get(p.mediaIds[0]) : undefined;
+    if (url) result.set(p.id, url);
+  }
+  return result;
+}
+
 export function incrementFanPostView(id: string) {
   prisma.fanPost
     .update({ where: { id }, data: { viewCount: { increment: 1 } } })

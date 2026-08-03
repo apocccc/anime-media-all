@@ -1,9 +1,10 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import type { ArticleListItem } from "@/lib/data";
+import { pickTranslation, type ArticleListItem } from "@/lib/data";
 import { categoryName } from "@/lib/categories";
-import { articlePath, formatTaipei } from "@/lib/site";
+import { localeMeta } from "@/lib/locale";
+import { articlePath, formatTokyo } from "@/lib/site";
 
 function CategoryBadge({
   article,
@@ -44,7 +45,7 @@ function Thumb({
         aria-hidden="true"
         className="flex h-full w-full items-center justify-center bg-bg-sub text-3xl font-black text-line select-none"
       >
-        環
+        A
       </div>
     );
   }
@@ -68,6 +69,8 @@ export async function HeroCard({
   article: ArticleListItem;
   locale: string;
 }) {
+  const tr = pickTranslation(article);
+  if (!tr) return null;
   const href = articlePath(article.category.slug, article.slug);
   return (
     <article className="group relative">
@@ -82,15 +85,15 @@ export async function HeroCard({
             dateTime={(article.publishedAt ?? article.createdAt).toISOString()}
             className="text-xs text-gray"
           >
-            {formatTaipei(article.publishedAt ?? article.createdAt, locale)}
+            {formatTokyo(article.publishedAt ?? article.createdAt, localeMeta(locale).intl)}
           </time>
         </div>
         <h2 className="mt-2 text-2xl font-black leading-snug group-hover:text-primary transition-colors">
-          {article.title}
+          {tr.title}
         </h2>
-        {article.lead ? (
+        {tr.lead ? (
           <p className="mt-2 line-clamp-2 text-[15px] leading-relaxed text-gray">
-            {article.lead}
+            {tr.lead}
           </p>
         ) : null}
       </Link>
@@ -108,6 +111,8 @@ export async function ArticleCard({
   locale: string;
   showCategory?: boolean;
 }) {
+  const tr = pickTranslation(article);
+  if (!tr) return null;
   const href = articlePath(article.category.slug, article.slug);
   return (
     <article className="group">
@@ -125,15 +130,15 @@ export async function ArticleCard({
               dateTime={(article.publishedAt ?? article.createdAt).toISOString()}
               className="text-xs text-gray"
             >
-              {formatTaipei(article.publishedAt ?? article.createdAt, locale)}
+              {formatTokyo(article.publishedAt ?? article.createdAt, localeMeta(locale).intl)}
             </time>
           </div>
           <h3 className="mt-1.5 line-clamp-2 text-[17px] font-bold leading-snug group-hover:text-primary transition-colors">
-            {article.title}
+            {tr.title}
           </h3>
-          {article.lead ? (
+          {tr.lead ? (
             <p className="mt-1 hidden sm:block line-clamp-2 text-sm leading-relaxed text-gray">
-              {article.lead}
+              {tr.lead}
             </p>
           ) : null}
         </div>
@@ -150,6 +155,8 @@ export async function CompactCard({
   article: ArticleListItem;
   locale: string;
 }) {
+  const tr = pickTranslation(article);
+  if (!tr) return null;
   const href = articlePath(article.category.slug, article.slug);
   return (
     <article className="group">
@@ -162,13 +169,13 @@ export async function CompactCard({
           <CategoryBadge article={article} locale={locale} />
         </div>
         <h3 className="mt-1.5 line-clamp-2 text-[15px] font-bold leading-snug group-hover:text-primary transition-colors">
-          {article.title}
+          {tr.title}
         </h3>
         <time
           dateTime={(article.publishedAt ?? article.createdAt).toISOString()}
           className="mt-1 block text-xs text-gray"
         >
-          {formatTaipei(article.publishedAt ?? article.createdAt, locale)}
+          {formatTokyo(article.publishedAt ?? article.createdAt, localeMeta(locale).intl)}
         </time>
       </Link>
     </article>

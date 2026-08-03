@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing, type SiteLocale } from "@/i18n/routing";
-import { inter, notoSansTC } from "@/lib/fonts";
+import { fontForLocale, lineHeightClassForLocale } from "@/lib/fonts";
+import { localeMeta, PUBLIC_LOCALES } from "@/lib/locale";
 import { getVisibleCategories } from "@/lib/data";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
@@ -24,6 +25,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "site" });
+  const meta = localeMeta(locale);
   return {
     metadataBase: new URL(SITE_URL),
     title: {
@@ -34,7 +36,10 @@ export async function generateMetadata({
     openGraph: {
       siteName: t("name"),
       type: "website",
-      locale: locale === "en" ? "en_US" : "zh_TW",
+      locale: meta.og,
+      alternateLocale: PUBLIC_LOCALES.filter((l) => l !== locale).map(
+        (l) => localeMeta(l).og
+      ),
     },
     twitter: {
       card: "summary_large_image",
@@ -42,7 +47,7 @@ export async function generateMetadata({
     alternates: {
       types: {
         "application/rss+xml": [
-          { url: absoluteUrl("/rss.xml"), title: t("name") },
+          { url: absoluteUrl(`/rss/${locale}.xml`), title: t("name") },
         ],
       },
     },
@@ -63,13 +68,14 @@ export default async function SiteLayout({
   setRequestLocale(locale);
 
   const categories = await getVisibleCategories();
+  const font = fontForLocale(locale);
 
   return (
-    <html lang={locale === "en" ? "en" : "zh-Hant"}>
+    <html lang={locale}>
       <body
-        className={`${notoSansTC.variable} ${inter.variable} font-sans bg-bg text-ink min-h-screen flex flex-col`}
+        className={`${font.variable} ${font.className} font-sans bg-bg text-ink min-h-screen flex flex-col ${lineHeightClassForLocale(locale)}`}
       >
-        <JsonLd data={[organizationJsonLd(), webSiteJsonLd()]} />
+        <JsonLd data={[organizationJsonLd(), webSiteJsonLd(locale)]} />
         {/* 公開サイトのみ計測(管理画面は別レイアウトのため対象外) */}
         {process.env.NEXT_PUBLIC_GA_ID ? (
           <GoogleAnalytics id={process.env.NEXT_PUBLIC_GA_ID} />
@@ -77,7 +83,7 @@ export default async function SiteLayout({
         <NextIntlClientProvider>
           <SiteHeader categories={categories} locale={locale} />
           <main className="flex-1">{children}</main>
-          <SiteFooter />
+          <SiteFooter locale={locale} />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -12,47 +12,64 @@ import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import Youtube from "@tiptap/extension-youtube";
-import type { ArticleStatus } from "@prisma/client";
+import type {
+  ArticleKind,
+  ArticleStatus,
+  Locale as DbLocale,
+  TranslatedBy,
+  TranslationStatus,
+} from "@prisma/client";
 import {
+  approveTranslationAction,
   changeStatusAction,
   deleteArticleAction,
+  excludeTranslationAction,
+  queueTranslationsAction,
   restoreRevisionAction,
+  retranslateAction,
   saveArticleAction,
 } from "@/app/(admin)/admin/actions";
-import { rewriteArticleAction } from "@/app/(admin)/admin/rss-actions";
 
 type EditorArticle = {
   id: string;
-  title: string;
-  lead: string;
   slug: string;
-  body: unknown;
   status: ArticleStatus;
+  kind: ArticleKind;
   categoryId: string;
   categorySlug: string;
   tags: string;
   isBreaking: boolean;
   isPinned: boolean;
-  prSourceName: string | null;
   heroImageId: string | null;
   heroImageUrl: string | null;
   publishAt: string | null;
   sourceName: string | null;
   isRssImported: boolean;
-  isRewritten: boolean;
 };
 
-type CategoryOption = { id: string; slug: string; nameZh: string };
+type EditorTranslation = {
+  locale: DbLocale;
+  title: string;
+  lead: string;
+  body: unknown;
+  status: TranslationStatus;
+  translatedBy: TranslatedBy | null;
+  isMaster: boolean;
+};
+
+type CategoryOption = { id: string; slug: string; name: string };
 type RevisionItem = { id: string; createdAt: string; editorName: string };
 
 export function ArticleEditor({
   article,
+  translation,
   categories,
   revisions,
   canPublish,
   previewToken,
 }: {
   article: EditorArticle;
+  translation: EditorTranslation;
   categories: CategoryOption[];
   revisions: RevisionItem[];
   canPublish: boolean;
@@ -60,17 +77,14 @@ export function ArticleEditor({
 }) {
   const t = useTranslations("admin.editor");
   const ts = useTranslations("admin.status");
-  const tr = useTranslations("admin.rewrite");
-  const [rewriting, setRewriting] = useState(false);
-  const [rewriteError, setRewriteError] = useState<string | null>(null);
-  const [title, setTitle] = useState(article.title);
-  const [lead, setLead] = useState(article.lead);
+  const tt = useTranslations("admin.translation");
+  const [title, setTitle] = useState(translation.title);
+  const [lead, setLead] = useState(translation.lead);
   const [slug, setSlug] = useState(article.slug);
   const [categoryId, setCategoryId] = useState(article.categoryId);
   const [tags, setTags] = useState(article.tags);
   const [isBreaking, setIsBreaking] = useState(article.isBreaking);
   const [isPinned, setIsPinned] = useState(article.isPinned);
-  const [prSourceName, setPrSourceName] = useState(article.prSourceName ?? "");
   const [heroImageId, setHeroImageId] = useState(article.heroImageId);
   const [heroImageUrl, setHeroImageUrl] = useState(article.heroImageUrl);
   const [publishAt, setPublishAt] = useState(
@@ -82,14 +96,16 @@ export function ArticleEditor({
   );
   const [charCount, setCharCount] = useState(0);
   const [pendingStatus, startStatusTransition] = useTransition();
+  const [pendingQueue, startQueueTransition] = useTransition();
+  const [queuedNote, setQueuedNote] = useState<string | null>(null);
   const dirtyRef = useRef(false);
 
   const isPublished = status === "published";
-  const isPressRelease =
-    categories.find((c) => c.id === categoryId)?.slug === "press-release";
+  const isExcluded = translation.status === "excluded";
 
   const editor = useEditor({
     immediatelyRender: false,
+    editable: !isExcluded,
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3] } }),
       Image,
@@ -101,7 +117,7 @@ export function ArticleEditor({
       TableHeader,
       Youtube.configure({ nocookie: true }),
     ],
-    content: (article.body as object) ?? undefined,
+    content: (translation.body as object) ?? undefined,
     onCreate({ editor }) {
       setCharCount(editor.state.doc.textContent.length);
     },
@@ -117,6 +133,7 @@ export function ArticleEditor({
     try {
       const result = await saveArticleAction({
         id: article.id,
+        locale: translation.locale,
         title,
         lead,
         slug,
@@ -125,7 +142,6 @@ export function ArticleEditor({
         tags,
         isBreaking,
         isPinned,
-        prSourceName: prSourceName || null,
         heroImageId,
         publishAt: publishAt ? new Date(publishAt).toISOString() : null,
       });
@@ -139,6 +155,7 @@ export function ArticleEditor({
   }, [
     editor,
     article.id,
+    translation.locale,
     title,
     lead,
     slug,
@@ -146,7 +163,6 @@ export function ArticleEditor({
     tags,
     isBreaking,
     isPinned,
-    prSourceName,
     heroImageId,
     publishAt,
   ]);
@@ -184,7 +200,9 @@ export function ArticleEditor({
     });
   };
 
-  const uploadImage = async (file: File): Promise<{ id: string; url: string } | null> => {
+  const uploadImage = async (
+    file: File
+  ): Promise<{ id: string; url: string } | null> => {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("alt", file.name.replace(/\.[a-z0-9]+$/i, ""));
@@ -228,15 +246,20 @@ export function ArticleEditor({
           <span className="rounded-full bg-bg px-3 py-1 font-medium border border-line">
             {ts(status)}
           </span>
+          {translation.isMaster ? (
+            <span className="rounded-sm bg-primary-light px-1.5 py-0.5 text-[11px] font-black text-primary-dark">
+              {tt("masterBadge")}
+            </span>
+          ) : null}
           {article.isRssImported ? (
             <span className="rounded-sm bg-amber-100 px-1.5 py-0.5 text-[11px] font-black text-amber-800">
-              {tr("rssBadge")}
+              RSS
               {article.sourceName ? ` · ${article.sourceName}` : ""}
             </span>
           ) : null}
-          {article.isRewritten ? (
-            <span className="rounded-sm bg-green-100 px-1.5 py-0.5 text-[11px] font-black text-green-800">
-              {tr("rewrittenBadge")}
+          {translation.translatedBy === "ai" && !translation.isMaster ? (
+            <span className="rounded-sm bg-blue-100 px-1.5 py-0.5 text-[11px] font-black text-blue-800">
+              AI
             </span>
           ) : null}
           <span className="text-xs text-gray">
@@ -248,29 +271,64 @@ export function ArticleEditor({
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {article.isRssImported && !article.isRewritten ? (
+          {/* 翻訳操作(マスター以外) */}
+          {!translation.isMaster ? (
+            <>
+              {["machine", "needs_review"].includes(translation.status) ? (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await approveTranslationAction(article.id, translation.locale);
+                    window.location.reload();
+                  }}
+                  className="rounded bg-green-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-green-700"
+                >
+                  ✓ {tt("approve")}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={async () => {
+                  await retranslateAction(article.id, translation.locale);
+                  setQueuedNote(tt("queued"));
+                }}
+                className="rounded border border-line bg-bg px-3 py-1.5 text-sm font-medium hover:border-primary hover:text-primary"
+              >
+                ↻ {tt("retranslate")}
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await excludeTranslationAction(
+                    article.id,
+                    translation.locale,
+                    !isExcluded
+                  );
+                  window.location.reload();
+                }}
+                className="rounded border border-line bg-bg px-3 py-1.5 text-sm font-medium hover:border-breaking hover:text-breaking"
+              >
+                {isExcluded ? tt("include") : tt("exclude")}
+              </button>
+            </>
+          ) : (
             <button
               type="button"
-              disabled={rewriting}
-              onClick={async () => {
-                if (!window.confirm(tr("confirm"))) return;
-                setRewriting(true);
-                setRewriteError(null);
-                const result = await rewriteArticleAction(article.id);
-                if (result.ok) {
-                  window.location.reload();
-                } else {
-                  setRewriteError(result.error);
-                  setRewriting(false);
-                }
-              }}
+              disabled={pendingQueue}
+              onClick={() =>
+                startQueueTransition(async () => {
+                  await saveRef.current();
+                  await queueTranslationsAction(article.id);
+                  setQueuedNote(tt("queuedAll"));
+                })
+              }
               className="rounded bg-ink px-3 py-1.5 text-sm font-bold text-white hover:bg-ink/80 disabled:opacity-50"
             >
-              {rewriting ? tr("running") : `✦ ${tr("button")}`}
+              🌐 {tt("queueAll")}
             </button>
-          ) : null}
+          )}
           <a
-            href={`/preview/${article.id}?token=${previewToken}`}
+            href={`/en/preview/${article.id}?token=${previewToken}`}
             target="_blank"
             rel="noreferrer"
             className="rounded border border-line bg-bg px-3 py-1.5 text-sm font-medium hover:border-primary hover:text-primary"
@@ -338,9 +396,14 @@ export function ArticleEditor({
         </div>
       </div>
 
-      {rewriteError ? (
-        <p className="mt-3 rounded bg-primary-light px-3 py-2 text-sm text-primary-dark">
-          {tr("error")}: {rewriteError}
+      {queuedNote ? (
+        <p className="mt-3 rounded bg-blue-50 px-3 py-2 text-sm text-blue-800">
+          {queuedNote}
+        </p>
+      ) : null}
+      {isExcluded ? (
+        <p className="mt-3 rounded bg-gray-100 px-3 py-2 text-sm text-gray">
+          {tt("excludedNote")}
         </p>
       ) : null}
 
@@ -350,29 +413,31 @@ export function ArticleEditor({
           <input
             type="text"
             value={title}
+            disabled={isExcluded}
             onChange={(e) => {
               setTitle(e.target.value);
               markDirty();
             }}
             placeholder={t("titlePlaceholder")}
-            className="w-full rounded-lg border border-line bg-bg px-4 py-3 text-2xl font-black outline-none focus:border-primary"
+            className="w-full rounded-lg border border-line bg-bg px-4 py-3 text-2xl font-black outline-none focus:border-primary disabled:bg-bg-sub"
           />
           <textarea
             value={lead}
+            disabled={isExcluded}
             onChange={(e) => {
               setLead(e.target.value);
               markDirty();
             }}
             placeholder={t("leadPlaceholder")}
             rows={2}
-            className="mt-3 w-full rounded-lg border border-line bg-bg px-4 py-3 text-[15px] outline-none focus:border-primary"
+            className="mt-3 w-full rounded-lg border border-line bg-bg px-4 py-3 text-[15px] outline-none focus:border-primary disabled:bg-bg-sub"
           />
           <p className="mt-1 text-right text-xs text-gray">
             {t("leadLabel")} — {lead.length}
           </p>
 
           {/* ツールバー */}
-          {editor ? (
+          {editor && !isExcluded ? (
             <div className="sticky top-0 z-10 mt-2 flex flex-wrap items-center gap-1 rounded-t-lg border border-line bg-bg px-2 py-1.5">
               <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={btn(editor.isActive("heading", { level: 2 }))}>
                 H2
@@ -449,7 +514,7 @@ export function ArticleEditor({
           </div>
         </div>
 
-        {/* サイドバー */}
+        {/* サイドバー(記事メタはロケール共通) */}
         <aside className="flex flex-col gap-4">
           <Field label={t("slugLabel")}>
             <input
@@ -478,25 +543,11 @@ export function ArticleEditor({
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.nameZh}
+                  {c.name}
                 </option>
               ))}
             </select>
           </Field>
-
-          {isPressRelease ? (
-            <Field label={t("prSourceName")}>
-              <input
-                type="text"
-                value={prSourceName}
-                onChange={(e) => {
-                  setPrSourceName(e.target.value);
-                  markDirty();
-                }}
-                className="w-full rounded border border-line bg-bg px-2 py-1.5 text-sm outline-none focus:border-primary"
-              />
-            </Field>
-          ) : null}
 
           <Field label={t("tagsLabel")}>
             <input
@@ -576,8 +627,8 @@ export function ArticleEditor({
                 {revisions.map((r) => (
                   <li key={r.id} className="flex items-center justify-between gap-2">
                     <span className="text-gray">
-                      {new Date(r.createdAt).toLocaleString("zh-TW", {
-                        timeZone: "Asia/Taipei",
+                      {new Date(r.createdAt).toLocaleString("ja-JP", {
+                        timeZone: "Asia/Tokyo",
                         month: "2-digit",
                         day: "2-digit",
                         hour: "2-digit",

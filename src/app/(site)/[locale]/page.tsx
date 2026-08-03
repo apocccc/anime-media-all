@@ -8,13 +8,15 @@ import {
   getPinnedArticles,
   getPopularArticles,
   getPressReleases,
+  pickTranslation,
 } from "@/lib/data";
+import { toDbLocale, localeMeta } from "@/lib/locale";
 import { HeroCard } from "@/components/site/ArticleCard";
 import { HeadlineList } from "@/components/site/HeadlineList";
 import { RankingList } from "@/components/site/RankingList";
 import { CategorySection } from "@/components/site/CategorySection";
 import { SectionHeading } from "@/components/site/SectionHeading";
-import { articlePath, formatTaipeiShort } from "@/lib/site";
+import { articlePath, formatTokyoShort } from "@/lib/site";
 
 export const revalidate = 300;
 
@@ -26,16 +28,16 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
+  const db = toDbLocale(locale);
 
-  // トップの各枠にはプレスリリース(新聞稿)も含めて表示する
   const [pinned, latest, breaking, pressReleases, popular, digests] =
     await Promise.all([
-      getPinnedArticles(5),
-      getLatestArticles(30, false),
-      getBreakingArticles(3),
-      getPressReleases(6),
-      getPopularArticles(10),
-      getCategoryDigests(4),
+      getPinnedArticles(db, 5),
+      getLatestArticles(db, 30, false),
+      getBreakingArticles(db, 3),
+      getPressReleases(db, 6),
+      getPopularArticles(db, 10),
+      getCategoryDigests(db, 4),
     ]);
 
   const hero = pinned[0] ?? latest[0];
@@ -58,16 +60,20 @@ export default async function HomePage({
             {t("labels.breaking")}
           </span>
           <ul className="flex gap-6 overflow-x-auto text-[13.5px] font-bold whitespace-nowrap">
-            {breaking.map((a) => (
-              <li key={a.id}>
-                <Link
-                  href={articlePath(a.category.slug, a.slug)}
-                  className="hover:text-breaking hover:underline underline-offset-2"
-                >
-                  {a.title}
-                </Link>
-              </li>
-            ))}
+            {breaking.map((a) => {
+              const tr = pickTranslation(a);
+              if (!tr) return null;
+              return (
+                <li key={a.id}>
+                  <Link
+                    href={articlePath(a.category.slug, a.slug)}
+                    className="hover:text-breaking hover:underline underline-offset-2"
+                  >
+                    {tr.title}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : null}
@@ -83,49 +89,56 @@ export default async function HomePage({
                 </div>
                 <div className="md:col-span-2 md:border-l md:border-line md:pl-5">
                   <ul className="divide-y divide-line">
-                    {subTop.map((a) => (
-                      <li key={a.id}>
-                        <Link
-                          href={articlePath(a.category.slug, a.slug)}
-                          className="group flex gap-2.5 py-2.5 first:pt-0"
-                        >
-                          <div className="relative aspect-[3/2] w-20 shrink-0 overflow-hidden rounded-sm bg-bg-sub">
-                            {a.heroImage ? (
-                              <Image
-                                src={a.heroImage.url}
-                                alt={a.heroImage.alt}
-                                fill
-                                sizes="80px"
-                                className="object-cover"
-                              />
-                            ) : (
-                              <span
-                                aria-hidden="true"
-                                className="flex h-full w-full items-center justify-center text-lg font-black text-line select-none"
+                    {subTop.map((a) => {
+                      const tr = pickTranslation(a);
+                      if (!tr) return null;
+                      return (
+                        <li key={a.id}>
+                          <Link
+                            href={articlePath(a.category.slug, a.slug)}
+                            className="group flex gap-2.5 py-2.5 first:pt-0"
+                          >
+                            <div className="relative aspect-[3/2] w-20 shrink-0 overflow-hidden rounded-sm bg-bg-sub">
+                              {a.heroImage ? (
+                                <Image
+                                  src={a.heroImage.url}
+                                  alt={a.heroImage.alt}
+                                  fill
+                                  sizes="80px"
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <span
+                                  aria-hidden="true"
+                                  className="flex h-full w-full items-center justify-center text-lg font-black text-line select-none"
+                                >
+                                  A
+                                </span>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              {a.isBreaking ? (
+                                <span className="mr-1 inline-block rounded-sm bg-breaking px-1 py-px align-[2px] text-[10px] font-bold text-white">
+                                  {t("labels.breaking")}
+                                </span>
+                              ) : null}
+                              <span className="line-clamp-3 text-[13.5px] font-bold leading-snug group-hover:text-primary">
+                                {tr.title}
+                              </span>
+                              <time
+                                dateTime={(a.publishedAt ?? a.createdAt).toISOString()}
+                                className="mt-0.5 block font-mono text-[11px] text-gray"
                               >
-                                環
-                              </span>
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            {a.isBreaking ? (
-                              <span className="mr-1 inline-block rounded-sm bg-breaking px-1 py-px align-[2px] text-[10px] font-bold text-white">
-                                {t("labels.breaking")}
-                              </span>
-                            ) : null}
-                            <span className="line-clamp-3 text-[13.5px] font-bold leading-snug group-hover:text-primary">
-                              {a.title}
-                            </span>
-                            <time
-                              dateTime={(a.publishedAt ?? a.createdAt).toISOString()}
-                              className="mt-0.5 block font-mono text-[11px] text-gray"
-                            >
-                              {formatTaipeiShort(a.publishedAt ?? a.createdAt, locale)}
-                            </time>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
+                                {formatTokyoShort(
+                                  a.publishedAt ?? a.createdAt,
+                                  localeMeta(locale).intl
+                                )}
+                              </time>
+                            </div>
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               </div>
@@ -174,23 +187,27 @@ export default async function HomePage({
                   </Link>
                 </div>
                 <ul className="mt-1 divide-y divide-line">
-                  {pressReleases.map((a) => (
-                    <li key={a.id}>
-                      <Link
-                        href={articlePath(a.category.slug, a.slug)}
-                        className="group block py-2"
-                      >
-                        <span className="line-clamp-2 text-[13px] font-medium leading-snug group-hover:text-primary">
-                          {a.title}
-                        </span>
-                        {a.prSourceName ? (
-                          <span className="mt-0.5 block text-[11px] text-gray">
-                            {a.prSourceName}
+                  {pressReleases.map((a) => {
+                    const tr = pickTranslation(a);
+                    if (!tr) return null;
+                    return (
+                      <li key={a.id}>
+                        <Link
+                          href={articlePath(a.category.slug, a.slug)}
+                          className="group block py-2"
+                        >
+                          <span className="line-clamp-2 text-[13px] font-medium leading-snug group-hover:text-primary">
+                            {tr.title}
                           </span>
-                        ) : null}
-                      </Link>
-                    </li>
-                  ))}
+                          {a.organization ? (
+                            <span className="mt-0.5 block text-[11px] text-gray">
+                              {a.organization.name}
+                            </span>
+                          ) : null}
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             ) : null}

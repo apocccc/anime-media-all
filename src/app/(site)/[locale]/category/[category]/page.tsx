@@ -7,7 +7,9 @@ import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { Pagination } from "@/components/site/Pagination";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { categoryName } from "@/lib/categories";
-import { absoluteUrl } from "@/lib/site";
+import { staticAlternates } from "@/lib/seo";
+import { toDbLocale } from "@/lib/locale";
+import { localizedUrl } from "@/lib/site";
 
 export const revalidate = 300;
 
@@ -28,16 +30,12 @@ export async function generateMetadata({
   return {
     title: name,
     alternates: {
-      canonical: absoluteUrl(locale === "en" ? `/en${path}` : path),
-      // 一覧ページはUI言語版同士を hreflang で相互リンク
-      languages: {
-        "zh-Hant": absoluteUrl(path),
-        en: absoluteUrl(`/en${path}`),
-      },
+      canonical: localizedUrl(locale, path),
+      languages: staticAlternates(path).languages,
     },
     openGraph: {
       title: name,
-      url: absoluteUrl(locale === "en" ? `/en${path}` : path),
+      url: localizedUrl(locale, path),
     },
   };
 }
@@ -58,7 +56,12 @@ export default async function CategoryPage({
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
   const t = await getTranslations();
-  const { items, total } = await getArticlesByCategory(slug, page, PER_PAGE);
+  const { items, total } = await getArticlesByCategory(
+    toDbLocale(locale),
+    slug,
+    page,
+    PER_PAGE
+  );
   const name = categoryName(category, locale);
 
   return (

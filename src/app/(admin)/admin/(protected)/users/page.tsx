@@ -3,10 +3,20 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { createUserAction } from "../../users-actions";
+import { setUserRoleAction } from "../../community-actions";
 
 export const dynamic = "force-dynamic";
 
 const ROLES = ["admin", "editor", "author", "contributor"] as const;
+const ALL_ROLES = [
+  "admin",
+  "editor",
+  "author",
+  "contributor",
+  "reader",
+  "influencer",
+  "partner",
+] as const;
 
 export default async function UsersPage() {
   const session = await auth();
@@ -15,7 +25,14 @@ export default async function UsersPage() {
 
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "asc" },
-    select: { id: true, name: true, email: true, role: true, slug: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      slug: true,
+      handle: true,
+    },
   });
 
   return (
@@ -36,7 +53,38 @@ export default async function UsersPage() {
               <tr key={u.id}>
                 <td className="px-4 py-2.5 font-medium">{u.name}</td>
                 <td className="px-4 py-2.5 text-gray">{u.email}</td>
-                <td className="px-4 py-2.5 text-gray">{u.role}</td>
+                <td className="px-4 py-2.5">
+                  {/* ロール変更(influencer 昇格時は handle も設定) */}
+                  <form
+                    action={setUserRoleAction}
+                    className="flex items-center gap-1.5"
+                  >
+                    <input type="hidden" name="id" value={u.id} />
+                    <select
+                      name="role"
+                      defaultValue={u.role}
+                      className="rounded border border-line bg-bg px-2 py-1 text-xs"
+                    >
+                      {ALL_ROLES.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      name="handle"
+                      defaultValue={u.handle ?? ""}
+                      placeholder="handle"
+                      className="w-24 rounded border border-line bg-bg px-2 py-1 font-mono text-xs"
+                    />
+                    <button
+                      type="submit"
+                      className="rounded border border-line px-2 py-1 text-xs hover:border-primary hover:text-primary"
+                    >
+                      ✓
+                    </button>
+                  </form>
+                </td>
               </tr>
             ))}
           </tbody>

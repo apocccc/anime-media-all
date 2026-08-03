@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
-import type { Category } from "@prisma/client";
 import { Link } from "@/i18n/navigation";
-import { categoryName } from "@/lib/categories";
-import { formatTaipei, TAIPEI_TZ } from "@/lib/site";
+import { categoryName, type CategoryWithTranslations } from "@/lib/categories";
+import { localeMeta } from "@/lib/locale";
+import { formatTokyo, SITE_NAME, TOKYO_TZ } from "@/lib/site";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { SearchForm } from "./SearchForm";
 
@@ -10,15 +10,16 @@ export async function SiteHeader({
   categories,
   locale,
 }: {
-  categories: Category[];
+  categories: CategoryWithTranslations[];
   locale: string;
 }) {
   const t = await getTranslations();
   const now = new Date();
-  const weekday = new Intl.DateTimeFormat(
-    locale === "en" ? "en-US" : "zh-TW",
-    { weekday: "short", timeZone: TAIPEI_TZ }
-  ).format(now);
+  const intl = localeMeta(locale).intl;
+  const weekday = new Intl.DateTimeFormat(intl, {
+    weekday: "short",
+    timeZone: TOKYO_TZ,
+  }).format(now);
 
   return (
     <header className="border-b border-line bg-bg">
@@ -26,7 +27,7 @@ export async function SiteHeader({
       <div className="border-b border-line bg-bg-sub">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-1 text-[11.5px] text-gray">
           <p>
-            {formatTaipei(now, locale, {
+            {formatTokyo(now, intl, {
               year: "numeric",
               month: "2-digit",
               day: "2-digit",
@@ -40,7 +41,7 @@ export async function SiteHeader({
             <Link href="/contact" className="hover:text-primary">
               {t("footer.contact")}
             </Link>
-            <a href="/rss.xml" className="hover:text-primary">
+            <a href={`/rss/${locale}.xml`} className="hover:text-primary">
               RSS
             </a>
           </nav>
@@ -52,10 +53,7 @@ export async function SiteHeader({
         <div className="flex items-center justify-between gap-4 py-2.5">
           <Link href="/" className="flex items-baseline gap-2 shrink-0">
             <span className="text-[26px] font-black tracking-tight text-primary leading-none">
-              環島新聞網
-            </span>
-            <span className="hidden sm:inline text-[10px] font-medium uppercase tracking-widest text-gray">
-              Huandao News
+              {SITE_NAME}
             </span>
           </Link>
           <div className="flex items-center gap-3">
@@ -84,7 +82,7 @@ export async function SiteHeader({
               </Link>
             </li>
             {categories
-              .filter((c) => c.slug !== "latest")
+              .filter((c) => c.slug !== "latest" && c.slug !== "fan")
               .map((c) => (
                 <li key={c.id}>
                   <Link
@@ -95,6 +93,22 @@ export async function SiteHeader({
                   </Link>
                 </li>
               ))}
+            <li>
+              <Link
+                href="/fans"
+                className="block border-b-2 border-transparent px-2.5 py-2 hover:border-primary hover:text-primary transition-colors"
+              >
+                {t("nav.fans")}
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/prize"
+                className="block border-b-2 border-transparent px-2.5 py-2 hover:border-primary hover:text-primary transition-colors"
+              >
+                {t("nav.prize")}
+              </Link>
+            </li>
           </ul>
         </div>
       </nav>

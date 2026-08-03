@@ -1,9 +1,9 @@
 import Image from "next/image";
-import type { Category } from "@prisma/client";
 import { Link } from "@/i18n/navigation";
-import type { ArticleListItem } from "@/lib/data";
-import { categoryName } from "@/lib/categories";
-import { articlePath, formatTaipeiShort } from "@/lib/site";
+import { pickTranslation, type ArticleListItem } from "@/lib/data";
+import { categoryName, type CategoryWithTranslations } from "@/lib/categories";
+import { localeMeta } from "@/lib/locale";
+import { articlePath, formatTokyoShort } from "@/lib/site";
 
 /** トップのカテゴリー別ブロック: リード記事(サムネ付き)+見出しリスト */
 export function CategorySection({
@@ -12,13 +12,15 @@ export function CategorySection({
   locale,
   moreLabel,
 }: {
-  category: Category;
+  category: CategoryWithTranslations;
   articles: ArticleListItem[];
   locale: string;
   moreLabel: string;
 }) {
   const [lead, ...rest] = articles;
   if (!lead) return null;
+  const leadTr = pickTranslation(lead);
+  if (!leadTr) return null;
 
   return (
     <section className="border-t-2 border-ink pt-3">
@@ -57,37 +59,41 @@ export function CategorySection({
               aria-hidden="true"
               className="flex h-full w-full items-center justify-center text-xl font-black text-line select-none"
             >
-              環
+              A
             </span>
           )}
         </div>
         <div className="min-w-0">
           <p className="line-clamp-3 text-[14px] font-bold leading-snug group-hover:text-primary">
-            {lead.title}
+            {leadTr.title}
           </p>
           <time
             dateTime={(lead.publishedAt ?? lead.createdAt).toISOString()}
             className="mt-1 block font-mono text-[11px] text-gray"
           >
-            {formatTaipeiShort(lead.publishedAt ?? lead.createdAt, locale)}
+            {formatTokyoShort(lead.publishedAt ?? lead.createdAt, localeMeta(locale).intl)}
           </time>
         </div>
       </Link>
 
       {rest.length > 0 ? (
         <ul className="mt-2 divide-y divide-line border-t border-line">
-          {rest.map((a) => (
-            <li key={a.id}>
-              <Link
-                href={articlePath(a.category.slug, a.slug)}
-                className="group block py-1.5"
-              >
-                <span className="line-clamp-2 text-[13px] font-medium leading-snug group-hover:text-primary">
-                  {a.title}
-                </span>
-              </Link>
-            </li>
-          ))}
+          {rest.map((a) => {
+            const tr = pickTranslation(a);
+            if (!tr) return null;
+            return (
+              <li key={a.id}>
+                <Link
+                  href={articlePath(a.category.slug, a.slug)}
+                  className="group block py-1.5"
+                >
+                  <span className="line-clamp-2 text-[13px] font-medium leading-snug group-hover:text-primary">
+                    {tr.title}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       ) : null}
     </section>

@@ -1,5 +1,6 @@
 import { getAllPublishedForSitemap } from "@/lib/data";
 import { absoluteUrl } from "@/lib/site";
+import { PUBLIC_DB_LOCALES, fromDbLocale } from "@/lib/locale";
 import { xmlEscape } from "@/lib/seo";
 
 export const revalidate = 3600;
@@ -7,19 +8,20 @@ export const revalidate = 3600;
 const SITEMAP_CHUNK_SIZE = 40000;
 
 /**
- * インデックスサイトマップ。5万件超に備え、記事は4万件ごとに分割した
- * /sitemaps/articles-{n}.xml を参照する。
+ * インデックスサイトマップ。/sitemaps/{locale}-pages.xml と
+ * /sitemaps/{locale}-articles-{n}.xml(4万件/ファイルで分割)を参照する。
  */
 export async function GET() {
-  const articles = await getAllPublishedForSitemap();
-  const chunks = Math.max(1, Math.ceil(articles.length / SITEMAP_CHUNK_SIZE));
-
-  const sitemaps = [
-    absoluteUrl("/sitemaps/pages.xml"),
-    ...Array.from({ length: chunks }, (_, i) =>
-      absoluteUrl(`/sitemaps/articles-${i + 1}.xml`)
-    ),
-  ];
+  const sitemaps: string[] = [];
+  for (const db of PUBLIC_DB_LOCALES) {
+    const locale = fromDbLocale(db);
+    const articles = await getAllPublishedForSitemap(db);
+    const chunks = Math.max(1, Math.ceil(articles.length / SITEMAP_CHUNK_SIZE));
+    sitemaps.push(absoluteUrl(`/sitemaps/${locale}-pages.xml`));
+    for (let i = 1; i <= chunks; i++) {
+      sitemaps.push(absoluteUrl(`/sitemaps/${locale}-articles-${i}.xml`));
+    }
+  }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

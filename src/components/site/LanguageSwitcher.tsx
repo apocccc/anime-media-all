@@ -3,11 +3,7 @@
 import { useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-
-const LABELS: Record<string, string> = {
-  "zh-Hant": "中文",
-  en: "EN",
-};
+import { LOCALE_META } from "@/lib/locale";
 
 export function LanguageSwitcher() {
   const locale = useLocale();
@@ -15,26 +11,23 @@ export function LanguageSwitcher() {
   const pathname = usePathname();
 
   return (
-    <div
-      className="flex items-center rounded-full border border-line text-[13px] font-medium overflow-hidden"
-      role="group"
-      aria-label="Language"
-    >
-      {routing.locales.map((l) => (
-        <button
-          key={l}
-          type="button"
-          onClick={() => router.replace(pathname, { locale: l })}
-          className={
-            l === locale
-              ? "bg-primary text-white px-3 py-1.5"
-              : "px-3 py-1.5 text-gray hover:text-ink"
-          }
-          aria-pressed={l === locale}
-        >
-          {LABELS[l]}
-        </button>
-      ))}
-    </div>
+    <label className="relative">
+      <span className="sr-only">Language</span>
+      <select
+        value={locale}
+        onChange={(e) =>
+          router.replace(pathname, {
+            locale: e.target.value as (typeof routing.locales)[number],
+          })
+        }
+        className="rounded-full border border-line bg-bg px-3 py-1.5 text-[13px] font-medium text-ink"
+      >
+        {routing.locales.map((l) => (
+          <option key={l} value={l}>
+            {LOCALE_META[l].label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

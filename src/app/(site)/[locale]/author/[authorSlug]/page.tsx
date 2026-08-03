@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAuthorWithArticles } from "@/lib/data";
+import { toDbLocale } from "@/lib/locale";
 import { ArticleCard } from "@/components/site/ArticleCard";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { Pagination } from "@/components/site/Pagination";
@@ -18,8 +19,8 @@ export async function generateMetadata({
 }: {
   params: Promise<Params>;
 }): Promise<Metadata> {
-  const { authorSlug } = await params;
-  const { author } = await getAuthorWithArticles(authorSlug, 1, 1);
+  const { locale, authorSlug } = await params;
+  const { author } = await getAuthorWithArticles(toDbLocale(locale), authorSlug, 1, 1);
   if (!author) return {};
   return { title: author.name, description: author.bio ?? undefined };
 }
@@ -37,6 +38,7 @@ export default async function AuthorPage({
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
   const { author, items, total } = await getAuthorWithArticles(
+    toDbLocale(locale),
     authorSlug,
     page,
     PER_PAGE

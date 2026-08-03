@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getArticlesByTag } from "@/lib/data";
+import { toDbLocale } from "@/lib/locale";
 import { ArticleCard } from "@/components/site/ArticleCard";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { Pagination } from "@/components/site/Pagination";
@@ -18,10 +19,10 @@ export async function generateMetadata({
 }: {
   params: Promise<Params>;
 }): Promise<Metadata> {
-  const { tag: tagSlug } = await params;
-  const { tag } = await getArticlesByTag(tagSlug, 1, 1);
+  const { locale, tag: tagSlug } = await params;
+  const { tag } = await getArticlesByTag(toDbLocale(locale), tagSlug, 1, 1);
   if (!tag) return {};
-  return { title: `#${tag.nameZh}` };
+  return { title: `#${tag.name}` };
 }
 
 export default async function TagPage({
@@ -36,7 +37,7 @@ export default async function TagPage({
 
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
-  const { tag, items, total } = await getArticlesByTag(tagSlug, page, PER_PAGE);
+  const { tag, items, total } = await getArticlesByTag(toDbLocale(locale), tagSlug, page, PER_PAGE);
   if (!tag) notFound();
 
   const t = await getTranslations();
@@ -46,13 +47,13 @@ export default async function TagPage({
       <Breadcrumbs
         crumbs={[
           { name: t("nav.home"), path: "/" },
-          { name: `#${tag.nameZh}`, path: `/tag/${tagSlug}` },
+          { name: `#${tag.name}`, path: `/tag/${tagSlug}` },
         ]}
       />
       <div className="mt-4">
         <h1 className="text-2xl font-black">
           <SectionHeading>
-            {t("tag.articlesTagged", { tag: tag.nameZh })}
+            {t("tag.articlesTagged", { tag: tag.name })}
           </SectionHeading>
         </h1>
       </div>

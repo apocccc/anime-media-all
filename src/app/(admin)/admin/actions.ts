@@ -4,12 +4,15 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { auth, canEditArticle, canPublish, signIn, signOut } from "@/lib/auth";
+import { auth, canEditArticle, canPublish, isStaff, signIn, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { articleSlug, isValidArticleSlug, slugify } from "@/lib/slug";
 import { revalidateArticle } from "@/lib/revalidate";
 import { articlePath } from "@/lib/site";
-import type { ArticleStatus } from "@prisma/client";
+import { queueArticleTranslations } from "@/lib/translate";
+import { enqueueJob } from "@/lib/jobs";
+import { ALL_DB_LOCALES, PUBLIC_DB_LOCALES } from "@/lib/locale";
+import type { ArticleStatus, Locale as DbLocale } from "@prisma/client";
 
 async function requireUser() {
   const session = await auth();
@@ -17,8 +20,14 @@ async function requireUser() {
   return session.user;
 }
 
-async function requireArticleAccess(articleId: string) {
+async function requireStaff() {
   const user = await requireUser();
+  if (!isStaff(user)) redirect("/admin/login");
+  return user;
+}
+
+async function requireArticleAccess(articleId: string) {
+  const user = await requireStaff();
   const article = await prisma.article.findUnique({
     where: { id: articleId },
     include: { category: true },
@@ -53,11 +62,7 @@ export async function loginAction(
     });
     if (user) {
       const store = await cookies();
-      store.set(
-        "ADMIN_LOCALE",
-        user.adminLocale === "zh_Hant" ? "zh-Hant" : user.adminLocale,
-        { path: "/admin" }
-      );
+      store.set("ADMIN_LOCALE", user.adminLocale, { path: "/" });
     }
   }
   redirect("/admin");
@@ -70,39 +75,45 @@ export async function logoutAction() {
 
 export async function setAdminLocaleAction(locale: string) {
   const user = await requireUser();
-  const parsed = z.enum(["zh_Hant", "en", "ja"]).safeParse(locale);
+  const parsed = z.enum(["ja", "en"]).safeParse(locale);
   if (!parsed.success) return;
   await prisma.user.update({
     where: { id: user.id },
     data: { adminLocale: parsed.data },
   });
   const store = await cookies();
-  store.set(
-    "ADMIN_LOCALE",
-    parsed.data === "zh_Hant" ? "zh-Hant" : parsed.data,
-    { path: "/admin" }
-  );
+  store.set("ADMIN_LOCALE", parsed.data, { path: "/" });
   revalidatePath("/admin", "layout");
 }
 
 /* ---------- 記事 ---------- */
 
 export async function createArticleAction() {
-  const user = await requireUser();
-  const latest = await prisma.category.findFirst({
-    where: { isVisible: true, slug: { not: "latest" } },
+  const user = await requireStaff();
+  const category = await prisma.category.findFirst({
+    where: { isVisible: true, slug: { notIn: ["latest", "fan"] } },
     orderBy: { order: "asc" },
   });
-  if (!latest) throw new Error("No category available");
+  if (!category) throw new Error("No category available");
 
   const article = await prisma.article.create({
     data: {
-      title: "",
       slug: articleSlug(`draft-${Date.now().toString(36)}`),
-      body: { type: "doc", content: [{ type: "paragraph" }] },
       status: "draft",
-      categoryId: latest.id,
+      kind: "editorial",
+      masterLocale: "ja",
+      categoryId: category.id,
       authorId: user.id,
+      translations: {
+        create: {
+          locale: "ja",
+          title: "",
+          lead: "",
+          body: { type: "doc", content: [{ type: "paragraph" }] },
+          status: "approved",
+          translatedBy: "human",
+        },
+      },
     },
   });
   redirect(`/admin/articles/${article.id}`);
@@ -110,6 +121,7 @@ export async function createArticleAction() {
 
 const saveSchema = z.object({
   id: z.string(),
+  locale: z.enum(["ja", "en", "ko", "zh_Hant", "th", "zh_Hans"]),
   title: z.string().max(300),
   lead: z.string().max(500),
   slug: z.string(),
@@ -118,7 +130,6 @@ const saveSchema = z.object({
   tags: z.string(),
   isBreaking: z.boolean(),
   isPinned: z.boolean(),
-  prSourceName: z.string().max(200).nullable(),
   heroImageId: z.string().nullable(),
   publishAt: z.string().nullable(),
 });
@@ -129,7 +140,8 @@ export async function saveArticleAction(input: SaveArticleInput) {
   const parsed = saveSchema.parse(input);
   const { user, article } = await requireArticleAccess(parsed.id);
 
-  // 公開済み記事のスラッグは変更不可(変更された場合は301リダイレクトを自動登録)
+  // 公開後のスラッグ変更不可(§2.4)。未公開時の変更は許可、
+  // 公開済みで変更された場合は全ロケール分の 301 を Redirect に自動登録
   let slug = article.slug;
   if (parsed.slug !== article.slug) {
     const requested = isValidArticleSlug(parsed.slug)
@@ -181,11 +193,12 @@ export async function saveArticleAction(input: SaveArticleInput) {
     .slice(0, 20);
   const tagIds: string[] = [];
   for (const name of tagNames) {
-    const tagSlug = slugify(name) || `tag-${Buffer.from(name).toString("hex").slice(0, 12)}`;
+    const tagSlug =
+      slugify(name) || `tag-${Buffer.from(name).toString("hex").slice(0, 12)}`;
     const tag = await prisma.tag.upsert({
       where: { slug: tagSlug },
-      create: { slug: tagSlug, nameZh: name },
-      update: { nameZh: name },
+      create: { slug: tagSlug, name },
+      update: { name },
     });
     tagIds.push(tag.id);
   }
@@ -193,14 +206,10 @@ export async function saveArticleAction(input: SaveArticleInput) {
   const updated = await prisma.article.update({
     where: { id: parsed.id },
     data: {
-      title: parsed.title,
-      lead: parsed.lead,
       slug,
-      body: parsed.body,
       categoryId: parsed.categoryId,
       isBreaking: parsed.isBreaking,
       isPinned: parsed.isPinned,
-      prSourceName: parsed.prSourceName || null,
       heroImageId: parsed.heroImageId || null,
       publishAt: parsed.publishAt ? new Date(parsed.publishAt) : null,
       tags: {
@@ -211,10 +220,36 @@ export async function saveArticleAction(input: SaveArticleInput) {
     include: { category: true },
   });
 
-  // リビジョン(保存ごとのスナップショット)
+  // 当該ロケールの翻訳本文を保存。人手編集は translatedBy: human。
+  // マスター(ja)は approved、他ロケールは人手修正時点で approved 扱い
+  const translation = await prisma.articleTranslation.upsert({
+    where: { articleId_locale: { articleId: parsed.id, locale: parsed.locale } },
+    create: {
+      articleId: parsed.id,
+      locale: parsed.locale,
+      title: parsed.title,
+      lead: parsed.lead,
+      body: parsed.body,
+      status: "approved",
+      translatedBy: "human",
+      reviewedById: user.id,
+      reviewedAt: new Date(),
+    },
+    update: {
+      title: parsed.title,
+      lead: parsed.lead,
+      body: parsed.body,
+      status: "approved",
+      translatedBy: "human",
+      reviewedById: user.id,
+      reviewedAt: new Date(),
+    },
+  });
+
+  // リビジョン(保存ごとのスナップショット。ArticleTranslation 単位)
   await prisma.revision.create({
     data: {
-      articleId: updated.id,
+      translationId: translation.id,
       editedBy: user.id,
       snapshot: {
         title: parsed.title,
@@ -264,18 +299,81 @@ export async function changeStatusAction(
   return { ok: true, status: updated.status };
 }
 
+/** 翻訳キュー投入(マスター確定後に全公開ロケールへ) */
+export async function queueTranslationsAction(articleId: string) {
+  await requireArticleAccess(articleId);
+  const queued = await queueArticleTranslations(articleId);
+  revalidatePath(`/admin/articles/${articleId}`);
+  return { ok: true, queued };
+}
+
+/** 翻訳の承認(needs_review / machine → approved) */
+export async function approveTranslationAction(
+  articleId: string,
+  locale: DbLocale
+) {
+  const { user, article } = await requireArticleAccess(articleId);
+  await prisma.articleTranslation.update({
+    where: { articleId_locale: { articleId, locale } },
+    data: { status: "approved", reviewedById: user.id, reviewedAt: new Date() },
+  });
+  revalidateArticle(article.category.slug, article.slug);
+  revalidatePath(`/admin/articles/${articleId}`);
+  return { ok: true };
+}
+
+/** 個別ロケールの再翻訳をジョブキューへ */
+export async function retranslateAction(articleId: string, locale: DbLocale) {
+  await requireArticleAccess(articleId);
+  await enqueueJob(
+    "translate_article",
+    { articleId, locale },
+    `translate:${articleId}:${locale}:${Date.now()}`
+  );
+  revalidatePath(`/admin/articles/${articleId}`);
+  return { ok: true };
+}
+
+/** 翻訳オプトアウト(excluded = そのロケールでは記事を存在させない) */
+export async function excludeTranslationAction(
+  articleId: string,
+  locale: DbLocale,
+  excluded: boolean
+) {
+  const { article } = await requireArticleAccess(articleId);
+  if (excluded) {
+    await prisma.articleTranslation.upsert({
+      where: { articleId_locale: { articleId, locale } },
+      create: {
+        articleId,
+        locale,
+        title: "",
+        lead: "",
+        body: { type: "doc", content: [] },
+        status: "excluded",
+      },
+      update: { status: "excluded" },
+    });
+  } else {
+    await prisma.articleTranslation.updateMany({
+      where: { articleId, locale, status: "excluded" },
+      data: { status: "pending" },
+    });
+  }
+  revalidateArticle(article.category.slug, article.slug);
+  revalidatePath(`/admin/articles/${articleId}`);
+  return { ok: true };
+}
+
 /**
  * 記事一覧の一括操作。選択した記事のステータスをまとめて変更する。
- * publish: 下書き・レビュー待ち・予約公開を即時公開する
  */
 export async function bulkStatusAction(formData: FormData) {
-  const session = await auth();
-  if (!session?.user) redirect("/admin/login");
-  const user = session.user;
+  const user = await requireStaff();
 
   const ids = formData.getAll("ids").map(String).filter(Boolean).slice(0, 100);
   const action = z
-    .enum(["publish", "draft", "archive"])
+    .enum(["publish", "draft", "archive", "queueTranslations"])
     .parse(formData.get("bulkAction"));
   if (ids.length === 0) return;
 
@@ -291,21 +389,24 @@ export async function bulkStatusAction(formData: FormData) {
         ? {}
         : { authorId: user.id }),
     },
-    include: { category: true },
+    include: {
+      category: true,
+      translations: { select: { locale: true, status: true } },
+    },
   });
 
   for (const article of articles) {
+    if (action === "queueTranslations") {
+      await queueArticleTranslations(article.id);
+      continue;
+    }
     if (action === "publish") {
       if (article.status === "published") continue;
-      // 誤公開ガード: RSS取り込みのみで未独自化の記事は一括公開の対象外
-      // (新聞稿カテゴリーは転載仕様のため除く。個別公開はエディターから可能)
-      if (
-        article.sourceFeedId &&
-        !article.isRewritten &&
-        article.category.slug !== "press-release"
-      ) {
-        continue;
-      }
+      // 誤公開ガード: マスター(ja)が確定していない生ソースは対象外
+      const master = article.translations.find(
+        (t) => t.locale === "ja" && t.status === "approved"
+      );
+      if (!master && article.sourceFeedId) continue;
       await prisma.article.update({
         where: { id: article.id },
         data: {
@@ -351,24 +452,25 @@ export async function deleteArticleAction(articleId: string) {
 export async function restoreRevisionAction(revisionId: string) {
   const revision = await prisma.revision.findUnique({
     where: { id: revisionId },
+    include: { translation: true },
   });
   if (!revision) throw new Error("Revision not found");
-  await requireArticleAccess(revision.articleId);
+  await requireArticleAccess(revision.translation.articleId);
 
   const snapshot = revision.snapshot as {
     title?: string;
     lead?: string;
     body?: unknown;
   };
-  await prisma.article.update({
-    where: { id: revision.articleId },
+  await prisma.articleTranslation.update({
+    where: { id: revision.translationId },
     data: {
       title: snapshot.title ?? "",
       lead: snapshot.lead ?? "",
       body: (snapshot.body ?? { type: "doc" }) as object,
     },
   });
-  revalidatePath(`/admin/articles/${revision.articleId}`);
+  revalidatePath(`/admin/articles/${revision.translation.articleId}`);
 }
 
 /* ---------- カテゴリー ---------- */
@@ -379,47 +481,70 @@ const categorySchema = z.object({
     .string()
     .regex(/^[a-z0-9][a-z0-9-]*$/)
     .max(50),
-  nameZh: z.string().min(1).max(50),
-  nameEn: z.string().min(1).max(50),
   order: z.coerce.number().int(),
   isVisible: z.boolean(),
 });
 
 export async function saveCategoryAction(formData: FormData) {
-  const user = await requireUser();
+  const user = await requireStaff();
   if (user.role !== "admin" && user.role !== "editor") {
     throw new Error("Forbidden");
   }
   const parsed = categorySchema.parse({
     id: (formData.get("id") as string) || undefined,
     slug: formData.get("slug"),
-    nameZh: formData.get("nameZh"),
-    nameEn: formData.get("nameEn"),
     order: formData.get("order"),
     isVisible: formData.get("isVisible") === "on",
   });
 
-  if (parsed.id) {
-    await prisma.category.update({
-      where: { id: parsed.id },
-      data: {
-        nameZh: parsed.nameZh,
-        nameEn: parsed.nameEn,
-        order: parsed.order,
-        isVisible: parsed.isVisible,
-      },
-    });
-  } else {
-    await prisma.category.create({
-      data: {
-        slug: parsed.slug,
-        nameZh: parsed.nameZh,
-        nameEn: parsed.nameEn,
-        order: parsed.order,
-        isVisible: parsed.isVisible,
-      },
+  // 6ロケール分の表示名(name_{locale})
+  const names: { locale: DbLocale; name: string }[] = [];
+  for (const locale of ALL_DB_LOCALES) {
+    const value = formData.get(`name_${locale}`);
+    if (typeof value === "string" && value.trim()) {
+      names.push({ locale, name: value.trim().slice(0, 60) });
+    }
+  }
+
+  const category = parsed.id
+    ? await prisma.category.update({
+        where: { id: parsed.id },
+        data: { order: parsed.order, isVisible: parsed.isVisible },
+      })
+    : await prisma.category.create({
+        data: {
+          slug: parsed.slug,
+          order: parsed.order,
+          isVisible: parsed.isVisible,
+        },
+      });
+
+  for (const { locale, name } of names) {
+    await prisma.categoryTranslation.upsert({
+      where: { categoryId_locale: { categoryId: category.id, locale } },
+      create: { categoryId: category.id, locale, name },
+      update: { name },
     });
   }
+
   revalidatePath("/admin/categories");
   revalidatePath("/", "layout");
+}
+
+/* ---------- 手動実行(生成) ---------- */
+
+export async function runGenerateAction() {
+  const user = await requireStaff();
+  if (user.role !== "admin" && user.role !== "editor") {
+    throw new Error("Forbidden");
+  }
+  const { generateMasterArticles } = await import("@/lib/generate");
+  const summary = await generateMasterArticles();
+  revalidatePath("/admin/articles");
+  return summary;
+}
+
+/** ダッシュボード等から全ロケール一覧に使う */
+export async function listPublicLocalesAction() {
+  return PUBLIC_DB_LOCALES;
 }

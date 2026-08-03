@@ -39,6 +39,7 @@ export const articleListInclude = (locale: DbLocale) =>
     category: { include: { translations: true } },
     author: { select: { name: true, slug: true, avatarUrl: true } },
     heroImage: true,
+    organization: true,
     translations: { where: publicTranslationWhere(locale) },
   }) satisfies Prisma.ArticleInclude;
 
@@ -47,6 +48,7 @@ export type ArticleListItem = Prisma.ArticleGetPayload<{
     category: { include: { translations: true } };
     author: { select: { name: true; slug: true; avatarUrl: true } };
     heroImage: true;
+    organization: true;
     translations: true;
   };
 }>;

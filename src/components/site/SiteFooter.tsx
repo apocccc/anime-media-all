@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { SITE_NAME } from "@/lib/site";
 
-export async function SiteFooter() {
+export async function SiteFooter({ locale }: { locale: string }) {
   const t = await getTranslations();
   const year = new Date().getFullYear();
 
@@ -10,7 +11,7 @@ export async function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xl font-black text-white">環島新聞網</p>
+            <p className="text-xl font-black text-white">{SITE_NAME}</p>
             <p className="mt-1 text-sm text-white/60">{t("site.tagline")}</p>
           </div>
           <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
@@ -23,13 +24,22 @@ export async function SiteFooter() {
             <Link href="/privacy" className="text-white/80 hover:text-white">
               {t("footer.privacy")}
             </Link>
-            <a href="/rss.xml" className="text-white/80 hover:text-white">
+            <Link href="/fans" className="text-white/80 hover:text-white">
+              {t("footer.fans")}
+            </Link>
+            <Link href="/prize" className="text-white/80 hover:text-white">
+              {t("footer.prize")}
+            </Link>
+            <a href="/partner" className="text-white/80 hover:text-white">
+              {t("footer.forPartners")}
+            </a>
+            <a href={`/rss/${locale}.xml`} className="text-white/80 hover:text-white">
               {t("footer.rss")}
             </a>
           </nav>
         </div>
         <p className="mt-8 text-xs text-white/50">
-          {t("footer.copyright", { year })}
+          {t("footer.copyright", { year, name: SITE_NAME })}
         </p>
       </div>
     </footer>

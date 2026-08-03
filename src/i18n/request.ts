@@ -3,9 +3,9 @@ import { cookies } from "next/headers";
 import { routing, type SiteLocale } from "./routing";
 
 /**
- * 公開サイト([locale] セグメントあり)は site.json を、
- * 管理画面など locale セグメントを持たないルートは admin.json を
- * ADMIN_LOCALE クッキー(zh-Hant / en / ja)に従って返す。
+ * 公開サイト([locale] セグメントあり)は site.json(5言語)を、
+ * 管理画面・事業者ポータルなど locale セグメントを持たないルートは
+ * admin.json を ADMIN_LOCALE クッキー(ja / en)に従って返す。
  */
 export default getRequestConfig(async ({ requestLocale }) => {
   const requested = await requestLocale;
@@ -20,11 +20,11 @@ export default getRequestConfig(async ({ requestLocale }) => {
     };
   }
 
-  // 管理画面: 常に動的レンダリングのため cookies() を利用できる
-  let adminLocale: "zh-Hant" | "en" | "ja" = "zh-Hant";
+  // 管理画面UI: ja(既定)/ en
+  let adminLocale: "ja" | "en" = "ja";
   try {
     const value = (await cookies()).get("ADMIN_LOCALE")?.value;
-    if (value === "en" || value === "ja") adminLocale = value;
+    if (value === "en") adminLocale = value;
   } catch {
     // 静的レンダリング中はデフォルトのまま
   }

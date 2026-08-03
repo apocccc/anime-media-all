@@ -1,0 +1,162 @@
+{
+  "site": {
+    "name": "Anime Media",
+    "tagline": "일본 애니메이션 뉴스를 당신의 언어로",
+    "description": "일본 애니메이션·만화·게임·IP 뉴스를 빠르고 정확하게 한국어로 전달합니다. 작품별 팬 커뮤니티도 함께."
+  },
+  "nav": {
+    "home": "홈",
+    "search": "검색",
+    "menu": "메뉴",
+    "allCategories": "전체 카테고리",
+    "fans": "팬 게시물",
+    "prize": "주간 프라이즈"
+  },
+  "labels": {
+    "breaking": "속보",
+    "pinned": "주요",
+    "ranking": "많이 본 기사",
+    "latestNews": "최신 뉴스",
+    "topStories": "톱 뉴스",
+    "relatedArticles": "관련 기사",
+    "pressRelease": "PR / 보도자료",
+    "pressReleaseNotice": "이 기사는 아래 기업이 제공한 보도자료이며, 내용에 대한 책임은 해당 기업에 있습니다.",
+    "prSource": "제공",
+    "sourceFrom": "출처",
+    "sources": "출처",
+    "prProvidedBy": "보도자료 제공",
+    "originalArticle": "원문 기사",
+    "imageSource": "이미지 출처",
+    "byAuthor": "작성자",
+    "publishedAt": "게재",
+    "updatedAt": "수정",
+    "tags": "태그",
+    "share": "공유",
+    "readMore": "더 보기",
+    "viewAll": "전체 보기",
+    "noArticles": "아직 기사가 없습니다.",
+    "page": "{page}페이지",
+    "prevPage": "이전",
+    "nextPage": "다음",
+    "articleCount": "기사 {count}건",
+    "machineTranslated": "이 기사는 자동 번역되었습니다. 일본어 원문이 우선합니다.",
+    "relatedSeries": "관련 작품",
+    "spoiler": "스포일러 — 탭하여 표시"
+  },
+  "search": {
+    "title": "검색",
+    "placeholder": "애니메이션 뉴스 검색…",
+    "resultsFor": "\"{query}\" 검색 결과",
+    "noResults": "\"{query}\"에 대한 기사를 찾을 수 없습니다.",
+    "button": "검색"
+  },
+  "author": {
+    "articlesBy": "{name} 기자의 기사"
+  },
+  "tag": {
+    "articlesTagged": "태그: {tag}"
+  },
+  "series": {
+    "title": "작품",
+    "newsTab": "뉴스",
+    "fansTab": "팬 게시물",
+    "infoTab": "정보",
+    "officialSite": "공식 사이트",
+    "officialLinks": "공식 링크",
+    "broadcast": "방송 정보",
+    "episodes": "화수",
+    "season": "시즌",
+    "streaming": "스트리밍",
+    "latestNews": "{title} 최신 뉴스",
+    "fanPostsFor": "{title} 팬 게시물",
+    "viewAllFans": "팬 게시물 전체 보기",
+    "noFanPosts": "이 작품의 팬 게시물이 아직 없습니다. 첫 번째로 올려 보세요!",
+    "postAbout": "이 작품에 대해 게시하기"
+  },
+  "fans": {
+    "title": "팬 게시물",
+    "latest": "최신",
+    "popular": "인기",
+    "bySeries": "작품별",
+    "postDetail": "팬 게시물",
+    "votes": "투표 {count}표",
+    "vote": "투표",
+    "voted": "투표 완료",
+    "loginToVote": "투표하려면 로그인",
+    "postedBy": "게시자",
+    "original": "원문",
+    "translation": "번역",
+    "showOriginal": "원문 보기",
+    "showTranslation": "번역 보기",
+    "aiTranslationNote": "번역은 자동 생성됩니다. 원문이 우선합니다.",
+    "report": "신고",
+    "postNew": "게시물 올리기",
+    "types": {
+      "illustration": "일러스트",
+      "cosplay": "코스프레",
+      "photo": "사진",
+      "text": "텍스트",
+      "embed": "임베드"
+    }
+  },
+  "prize": {
+    "title": "주간 프라이즈",
+    "description": "매주 최고의 팬 게시물에 상품을 드립니다. 수상작은 창의성과 완성도를 기준으로 편집부가 선정합니다.",
+    "currentCycle": "이번 주",
+    "pastWinners": "역대 수상자",
+    "rules": "규정",
+    "votingEnds": "투표 마감",
+    "winner": "수상자",
+    "week": "{date} 주",
+    "noCycle": "현재 진행 중인 프라이즈 사이클이 없습니다.",
+    "judgingNote": "수상작은 독자 투표를 참고하여 편집부 심사로 결정됩니다. 추첨이 아닌 실력 기반 콘테스트입니다.",
+    "rulesBody": "응모 자격, 연령 요건, 제외 지역, 상품 내용, 선정 방법, 세금 처리 및 개인정보 취급은 지역별로 이곳에 안내됩니다. 임직원 및 관계자는 응모할 수 없습니다. 응모 전 해당 지역의 규정을 확인해 주세요."
+  },
+  "creators": {
+    "postsBy": "{name}님의 게시물",
+    "creator": "크리에이터"
+  },
+  "press": {
+    "companyPage": "기업",
+    "pressReleasesBy": "{name}의 보도자료",
+    "aboutCompany": "소개",
+    "website": "웹사이트",
+    "contact": "문의"
+  },
+  "auth": {
+    "signIn": "로그인",
+    "signOut": "로그아웃",
+    "myPage": "마이페이지"
+  },
+  "footer": {
+    "about": "소개",
+    "contact": "문의",
+    "privacy": "개인정보 처리방침",
+    "terms": "이용약관",
+    "rss": "RSS 피드",
+    "fans": "팬 게시물",
+    "prize": "주간 프라이즈",
+    "forPartners": "기업용(보도자료 게재)",
+    "copyright": "© {year} {name}. All rights reserved."
+  },
+  "pages": {
+    "about": {
+      "title": "소개",
+      "body": "일본 애니메이션·IP 뉴스를 전 세계 팬에게 각자의 언어로 빠르고 정확하게 전달합니다. 뉴스뿐 아니라 작품별 팬 커뮤니티와 주간 프라이즈도 운영합니다. 공식 표기를 우선하는 일관된 고유명사 표기가 저희 신뢰성의 핵심입니다."
+    },
+    "contact": {
+      "title": "문의",
+      "body": "제보, 제휴 문의, 보도자료 게재, 삭제 요청(DMCA 상당)을 받습니다. 최대한 빠르게 회신하겠습니다.",
+      "email": "이메일"
+    },
+    "privacy": {
+      "title": "개인정보 처리방침",
+      "body": "저희는 이용자의 개인정보를 존중합니다. 서비스 제공에 필요한 최소한의 범위에서만 데이터를 수집·이용하며, 제3자에게 제공하지 않습니다. 본 방침은 서비스 발전에 따라 갱신됩니다."
+    }
+  },
+  "notFound": {
+    "title": "페이지를 찾을 수 없습니다",
+    "description": "찾으시는 페이지가 존재하지 않거나 이동되었습니다.",
+    "backHome": "홈으로 돌아가기"
+  }
+}

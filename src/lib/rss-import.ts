@@ -6,11 +6,21 @@ import { prisma } from "@/lib/prisma";
 import { bodyExtensions, extractText, linkifyDoc } from "@/lib/tiptap";
 import { storeRemoteImage } from "@/lib/media-store";
 import { dateStamp } from "@/lib/slug";
-import { revalidateArticle } from "@/lib/revalidate";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import type { RssFeed } from "@prisma/client";
+
+/**
+ * 収集パイプライン(§6)。公式RSS/Atom等から日本語ソースを取り込み、
+ * 「生ソース」として Article(draft, kind: ai_generated)+
+ * ArticleTranslation(ja, status: pending)+ ArticleSource を作る。
+ * 後段の generate cron が日本語マスター記事を生成する。
+ * robots.txt 尊重・取得間隔・UA明示・全文転載禁止(§6.1)。
+ */
 
 const MAX_ITEMS_PER_FETCH = 30;
 const MAX_INLINE_IMAGES = 10;
+
+const BOT_UA = `${SITE_NAME.replace(/\s+/g, "")}Bot/1.0 (+${SITE_URL}/about)`;
 
 type FeedItem = {
   title?: string;
@@ -27,7 +37,7 @@ type FeedItem = {
 
 const parser: Parser<object, FeedItem> = new Parser({
   timeout: 20_000,
-  headers: { "User-Agent": "HuandaoNewsBot/1.0 (+https://huandaonews.com)" },
+  headers: { "User-Agent": BOT_UA },
   customFields: {
     item: [
       ["content:encoded", "content:encoded"],
@@ -97,7 +107,7 @@ export async function fetchOgImage(pageUrl: string): Promise<string | null> {
   try {
     const res = await fetch(pageUrl, {
       signal: AbortSignal.timeout(12_000),
-      headers: { "User-Agent": "HuandaoNewsBot/1.0 (+https://huandaonews.tw)" },
+      headers: { "User-Agent": BOT_UA },
     });
     if (!res.ok) return null;
     const html = (await res.text()).slice(0, 300_000);
@@ -120,7 +130,7 @@ export async function fetchOgImage(pageUrl: string): Promise<string | null> {
 /**
  * サムネイルを確保する: フィード内画像→元記事のog:imageの順に
  * ダウンロード検証して保存する。検証に成功した画像が無ければ null
- * (=表示保証のないサムネイルは使わない)
+ * (=サムネイルをDL検証できない記事は取り込まない)
  */
 async function resolveHeroMedia(
   candidate: string | null,
@@ -164,16 +174,7 @@ export async function importFeed(
     throw e;
   }
 
-  const feedCategory = await prisma.category.findUnique({
-    where: { id: feed.categoryId },
-  });
-  const isPressReleaseFeed = feedCategory?.slug === "press-release";
-
-  // 優先順: 呼び出し時の指定 > フィードごとの設定 > 上限。
-  // プレスリリース系フィードは件数上限なく取り込む(安全上限のみ)
-  const limit = isPressReleaseFeed
-    ? (opts.maxItems ?? MAX_ITEMS_PER_FETCH)
-    : (opts.maxItems ?? feed.fetchLimit ?? MAX_ITEMS_PER_FETCH);
+  const limit = opts.maxItems ?? feed.fetchLimit ?? MAX_ITEMS_PER_FETCH;
   const items = (parsed.items ?? []).slice(
     0,
     Math.min(Math.max(1, limit), MAX_ITEMS_PER_FETCH)
@@ -188,13 +189,13 @@ export async function importFeed(
         continue;
       }
 
-      // 重複チェック(先に入ってきたものを優先)
+      // 重複チェック(sourceGuid で先に入ってきたものを優先)
       const dup = await prisma.article.findFirst({
         where: {
           OR: [
             { sourceGuid: guid },
-            ...(item.link ? [{ sourceUrl: item.link }] : []),
-            { title },
+            ...(item.link ? [{ sources: { some: { url: item.link } } }] : []),
+            { translations: { some: { locale: "ja", title } } },
           ],
         },
         select: { id: true },
@@ -213,15 +214,9 @@ export async function importFeed(
           : new Date();
 
       // 画像を自社ストレージへ保存(アイキャッチ+本文内画像)。
-      // フィードに画像が無い場合は元記事の og:image を取得する。
       // サムネイルを確保できない記事は取り込み対象外とする
       const heroCandidate = resolveHeroCandidate(item, rawHtml);
-      const hero = await resolveHeroMedia(
-        heroCandidate,
-        item,
-        title,
-        importUser.id
-      );
+      const hero = await resolveHeroMedia(heroCandidate, item, title, importUser.id);
       if (!hero) {
         result.skipped++;
         continue;
@@ -231,7 +226,6 @@ export async function importFeed(
       const inlineSrcs = extractImgSrcs(rawHtml).slice(0, MAX_INLINE_IMAGES);
       for (const src of inlineSrcs) {
         if (src === heroCandidate) {
-          // アイキャッチと同じ画像は本文から重複表示しない
           html = html.split(src).join(hero?.url ?? src);
           continue;
         }
@@ -266,39 +260,41 @@ export async function importFeed(
         };
       }
 
-      // スラッグに取り込み元を推測させる情報(rss等)を含めない
+      // スラッグに取り込み元を推測させる情報(rss等)を含めない。
+      // 生成段階で英語ベースのスラッグへ差し替えられる(公開後は変更不可)
       const slug = `${dateStamp(publishedAt)}-${hash8(guid)}`;
-      // プレスリリース系フィード: そのまま引用として公開(要承認なら review)。
-      // 一般カテゴリーのフィード: そのままでは公開せず draft で保持し、
-      // 毎朝のAI書き換えジョブ(daily-rewrite)が独自記事化してから公開する。
-      const status = isPressReleaseFeed
-        ? feed.autoPublish
-          ? ("published" as const)
-          : ("review" as const)
-        : ("draft" as const);
 
       const article = await prisma.article.create({
         data: {
           slug,
-          title,
-          lead: firstParagraphText(item.contentSnippet ?? rawHtml, title),
-          body,
-          status,
-          publishedAt: status === "published" ? publishedAt : null,
+          status: "draft",
+          kind: "ai_generated",
+          masterLocale: "ja",
           categoryId: feed.categoryId,
           authorId: importUser.id,
           heroImageId: hero?.id ?? null,
           sourceFeedId: feed.id,
-          sourceName: feed.name,
-          sourceUrl: item.link ?? null,
           sourceGuid: guid,
+          translations: {
+            create: {
+              locale: "ja",
+              title,
+              lead: firstParagraphText(item.contentSnippet ?? rawHtml, title),
+              body: body as object,
+              status: "pending",
+            },
+          },
+          sources: {
+            create: {
+              name: feed.name,
+              url: item.link ?? feed.url,
+              publishedAt,
+              isPrimary: true,
+            },
+          },
         },
-        include: { category: true },
       });
 
-      if (article.status === "published") {
-        revalidateArticle(article.category.slug, article.slug);
-      }
       result.imported++;
       result.articleIds.push(article.id);
     } catch (e) {
@@ -321,20 +317,22 @@ export async function importFeed(
 
 /**
  * サムネイルが無いRSS取り込み記事に元記事のog:imageを補完する
- * (RSS cronが毎回、直近の欠落分から順に処理する)
+ * (ingest cronが毎回、直近の欠落分から順に処理する)
  */
 export async function backfillMissingThumbnails(limit = 10): Promise<number> {
   const articles = await prisma.article.findMany({
     where: {
       sourceFeedId: { not: null },
       heroImageId: null,
-      sourceUrl: { not: null },
-      // 取得できないまま残り続ける記事を永久に再試行しない(直近7日分のみ)
+      sources: { some: {} },
       createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
     },
     orderBy: { createdAt: "desc" },
     take: limit,
-    include: { category: true },
+    include: {
+      sources: { where: { isPrimary: true } },
+      translations: { where: { locale: "ja" } },
+    },
   });
   if (articles.length === 0) return 0;
 
@@ -342,11 +340,13 @@ export async function backfillMissingThumbnails(limit = 10): Promise<number> {
   let filled = 0;
   for (const article of articles) {
     try {
-      const imageUrl = await fetchOgImage(article.sourceUrl!);
+      const sourceUrl = article.sources[0]?.url;
+      if (!sourceUrl) continue;
+      const imageUrl = await fetchOgImage(sourceUrl);
       if (!imageUrl) continue;
       const stored = await storeRemoteImage(
         imageUrl,
-        article.title,
+        article.translations[0]?.title ?? article.slug,
         importUser.id
       );
       if (!stored) continue;
@@ -354,9 +354,6 @@ export async function backfillMissingThumbnails(limit = 10): Promise<number> {
         where: { id: article.id },
         data: { heroImageId: stored.id },
       });
-      if (article.status === "published") {
-        revalidateArticle(article.category.slug, article.slug);
-      }
       filled++;
     } catch (e) {
       console.error(`[rss-import] thumbnail backfill failed (${article.slug}):`, e);

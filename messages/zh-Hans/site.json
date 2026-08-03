@@ -1,0 +1,162 @@
+{
+  "site": {
+    "name": "Anime Media",
+    "tagline": "用你的语言看日本动画资讯",
+    "description": "以最快速度、准确地用简体中文传递日本动画、漫画、游戏与 IP 资讯,并提供各作品的粉丝社区。"
+  },
+  "nav": {
+    "home": "首页",
+    "search": "搜索",
+    "menu": "菜单",
+    "allCategories": "全部分类",
+    "fans": "粉丝投稿",
+    "prize": "每周奖励"
+  },
+  "labels": {
+    "breaking": "快讯",
+    "pinned": "置顶",
+    "ranking": "热门排行",
+    "latestNews": "最新资讯",
+    "topStories": "头条",
+    "relatedArticles": "相关报道",
+    "pressRelease": "PR / 新闻稿",
+    "pressReleaseNotice": "本文为下列企业提供的新闻稿,内容由该企业负责。",
+    "prSource": "提供",
+    "sourceFrom": "来源",
+    "sources": "来源",
+    "prProvidedBy": "新闻稿提供",
+    "originalArticle": "原文报道",
+    "imageSource": "图片来源",
+    "byAuthor": "撰文",
+    "publishedAt": "发布",
+    "updatedAt": "更新",
+    "tags": "标签",
+    "share": "分享",
+    "readMore": "阅读更多",
+    "viewAll": "查看全部",
+    "noArticles": "暂时还没有文章。",
+    "page": "第 {page} 页",
+    "prevPage": "上一页",
+    "nextPage": "下一页",
+    "articleCount": "{count} 篇文章",
+    "machineTranslated": "本文为自动翻译,以日文原文为准。",
+    "relatedSeries": "相关作品",
+    "spoiler": "剧透 — 点击显示"
+  },
+  "search": {
+    "title": "搜索",
+    "placeholder": "搜索动画资讯…",
+    "resultsFor": "“{query}”的搜索结果",
+    "noResults": "没有找到与“{query}”相关的文章。",
+    "button": "搜索"
+  },
+  "author": {
+    "articlesBy": "{name} 的报道"
+  },
+  "tag": {
+    "articlesTagged": "标签:{tag}"
+  },
+  "series": {
+    "title": "作品",
+    "newsTab": "资讯",
+    "fansTab": "粉丝投稿",
+    "infoTab": "作品信息",
+    "officialSite": "官方网站",
+    "officialLinks": "官方链接",
+    "broadcast": "播出信息",
+    "episodes": "集数",
+    "season": "季度",
+    "streaming": "视频平台",
+    "latestNews": "{title} 最新资讯",
+    "fanPostsFor": "{title} 的粉丝投稿",
+    "viewAllFans": "查看全部粉丝投稿",
+    "noFanPosts": "这部作品还没有粉丝投稿,快来抢沙发!",
+    "postAbout": "投稿这部作品"
+  },
+  "fans": {
+    "title": "粉丝投稿",
+    "latest": "最新",
+    "popular": "人气",
+    "bySeries": "按作品",
+    "postDetail": "粉丝投稿",
+    "votes": "{count} 票",
+    "vote": "投票",
+    "voted": "已投票",
+    "loginToVote": "登录后投票",
+    "postedBy": "投稿者",
+    "original": "原文",
+    "translation": "翻译",
+    "showOriginal": "显示原文",
+    "showTranslation": "显示翻译",
+    "aiTranslationNote": "翻译为自动生成,以原文为准。",
+    "report": "举报",
+    "postNew": "发布投稿",
+    "types": {
+      "illustration": "插画",
+      "cosplay": "Cosplay",
+      "photo": "照片",
+      "text": "文字",
+      "embed": "嵌入"
+    }
+  },
+  "prize": {
+    "title": "每周奖励",
+    "description": "每周最佳粉丝投稿可获得奖品。获奖作品由编辑部根据创意与完成度评选。",
+    "currentCycle": "本周",
+    "pastWinners": "历届获奖者",
+    "rules": "活动规则",
+    "votingEnds": "投票截止",
+    "winner": "获奖者",
+    "week": "{date} 当周",
+    "noCycle": "目前没有正在进行的奖励周期。",
+    "judgingNote": "获奖作品由编辑部评审决定,并参考读者投票。本活动为实力评选,并非抽奖。",
+    "rulesBody": "各地区的参与资格、年龄要求、排除地区、奖品内容、评选方式、税务处理与个人信息使用方式均在此说明。员工及关联人员不得参与。参与前请先确认所在地区的规则。"
+  },
+  "creators": {
+    "postsBy": "{name} 的投稿",
+    "creator": "创作者"
+  },
+  "press": {
+    "companyPage": "企业",
+    "pressReleasesBy": "{name} 的新闻稿",
+    "aboutCompany": "关于",
+    "website": "网站",
+    "contact": "联系"
+  },
+  "auth": {
+    "signIn": "登录",
+    "signOut": "退出登录",
+    "myPage": "个人中心"
+  },
+  "footer": {
+    "about": "关于我们",
+    "contact": "联系我们",
+    "privacy": "隐私政策",
+    "terms": "使用条款",
+    "rss": "RSS 订阅",
+    "fans": "粉丝投稿",
+    "prize": "每周奖励",
+    "forPartners": "企业服务(新闻稿刊登)",
+    "copyright": "© {year} {name}. All rights reserved."
+  },
+  "pages": {
+    "about": {
+      "title": "关于我们",
+      "body": "我们以各地粉丝的母语,最快速、准确地传递日本动画与 IP 资讯。除了资讯,还提供各作品的粉丝社区与每周最佳投稿奖励。以官方表记为准的一致译名,是我们可信度的核心。"
+    },
+    "contact": {
+      "title": "联系我们",
+      "body": "欢迎提供新闻线索、洽谈合作、投递新闻稿,或提出删除申请(相当于 DMCA)。我们会尽快回复。",
+      "email": "电子邮箱"
+    },
+    "privacy": {
+      "title": "隐私政策",
+      "body": "我们尊重您的隐私。仅在提供服务所需的最小范围内收集与使用数据,不会向第三方提供您的个人信息。本政策将随服务发展更新。"
+    }
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "description": "您要找的页面不存在或已被移动。",
+    "backHome": "返回首页"
+  }
+}

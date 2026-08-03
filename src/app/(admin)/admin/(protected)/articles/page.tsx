@@ -112,7 +112,12 @@ export default async function ArticlesPage({
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-black">{t("articles.title")}</h1>
         <div className="flex gap-2">
-          <form action={runGenerateAction}>
+          <form
+            action={async () => {
+              "use server";
+              await runGenerateAction();
+            }}
+          >
             <button
               type="submit"
               className="rounded border border-line bg-bg px-4 py-2 text-sm font-bold hover:border-primary hover:text-primary"

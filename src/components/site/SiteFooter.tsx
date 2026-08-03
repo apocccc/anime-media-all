@@ -30,9 +30,13 @@ export async function SiteFooter({ locale }: { locale: string }) {
             <Link href="/prize" className="text-white/80 hover:text-white">
               {t("footer.prize")}
             </Link>
+            {/* ロケール外ルートへの遷移のため <a> を使用 */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/partner" className="text-white/80 hover:text-white">
               {t("footer.forPartners")}
             </a>
+            {/* ロケール外ルートへの遷移のため <a> を使用 */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href={`/rss/${locale}.xml`} className="text-white/80 hover:text-white">
               {t("footer.rss")}
             </a>

@@ -1,17 +1,17 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: huandaonews-db
+    container_name: animemedia-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: huandaonews
+      POSTGRES_DB: animemedia
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d huandaonews"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d animemedia"]
       interval: 2s
       timeout: 3s
       retries: 20

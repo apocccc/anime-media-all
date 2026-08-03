@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth, isStaff } from "@/lib/auth";
 import { storeImage } from "@/lib/media-store";
 
 export const runtime = "nodejs";
 
-/** 管理画面からの画像アップロード(WebP変換して保存) */
+/** 管理画面からの画像アップロード(WebP変換して保存)。スタッフのみ */
 export async function POST(req: Request) {
   const session = await auth();
-  if (!session?.user) {
+  if (!session?.user || !isStaff(session.user)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

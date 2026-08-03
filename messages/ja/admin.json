@@ -12,7 +12,14 @@
       "redirects": "リダイレクト",
       "settings": "設定",
       "viewSite": "サイトを表示",
-      "signOut": "ログアウト"
+      "signOut": "ログアウト",
+      "translations": "翻訳キュー",
+      "glossary": "用語辞書",
+      "series": "作品",
+      "moderation": "モデレーション",
+      "prize": "プライズ",
+      "partners": "事業者",
+      "jobs": "ジョブ"
     },
     "login": {
       "title": "管理画面にログイン",
@@ -31,7 +38,13 @@
       "reviewQueue": "レビュー待ち記事",
       "recentDrafts": "最近の下書き",
       "views": "閲覧数",
-      "empty": "データがありません"
+      "empty": "データがありません",
+      "translationQueue": "翻訳キュー",
+      "needsReview": "要レビュー翻訳",
+      "pendingTerms": "未確定用語",
+      "moderationQueue": "投稿承認待ち",
+      "partnerQueue": "事業者審査待ち",
+      "failedJobs": "失敗ジョブ"
     },
     "articles": {
       "title": "記事",
@@ -43,7 +56,10 @@
       "kinds": {
         "rewritten": "独自化済み",
         "rssRaw": "RSS未加工",
-        "manual": "自社記事"
+        "manual": "自社記事",
+        "editorial": "編集記事",
+        "ai_generated": "AI生成",
+        "press_release": "プレスリリース"
       },
       "all": "すべて",
       "columns": {
@@ -52,10 +68,12 @@
         "category": "カテゴリー",
         "author": "著者",
         "publishedAt": "公開日時",
-        "updatedAt": "更新日時"
+        "updatedAt": "更新日時",
+        "locales": "翻訳状況"
       },
       "empty": "該当する記事がありません",
-      "untitled": "(無題)"
+      "untitled": "(無題)",
+      "runGenerate": "AI記事生成を実行"
     },
     "bulk": {
       "label": "一括操作",
@@ -64,7 +82,8 @@
       "archive": "非公開化",
       "apply": "適用",
       "selectAll": "すべて選択",
-      "hint": "記事にチェックを入れて適用。下書き・レビュー待ち・予約公開の記事をまとめて即時公開できます(RSS未加工の記事は誤公開防止のため公開されません。新聞稿は除く)"
+      "hint": "記事にチェックを入れて適用。下書き・レビュー待ち・予約公開の記事をまとめて即時公開できます(RSS未加工の記事は誤公開防止のため公開されません。新聞稿は除く)",
+      "queueTranslations": "翻訳キューへ投入"
     },
     "status": {
       "draft": "下書き",
@@ -83,7 +102,6 @@
       "tagsLabel": "タグ(カンマ区切り)",
       "heroImage": "アイキャッチ画像",
       "heroImageAlt": "アイキャッチ画像の代替テキスト (alt)",
-      "prSourceName": "プレスリリース配信元",
       "isBreaking": "速報",
       "isPinned": "トップ固定",
       "publishAt": "予約公開日時",
@@ -148,8 +166,6 @@
     },
     "categories": {
       "title": "カテゴリー",
-      "nameZh": "中国語名",
-      "nameEn": "英語名",
       "slug": "スラッグ",
       "order": "並び順",
       "visible": "表示",
@@ -174,6 +190,249 @@
       "loading": "読み込み中…",
       "error": "エラーが発生しました。時間をおいて再試行してください",
       "language": "表示言語"
+    },
+    "translationStatus": {
+      "pending": "未翻訳",
+      "machine": "機械翻訳",
+      "needs_review": "要レビュー",
+      "approved": "承認済み",
+      "failed": "失敗",
+      "excluded": "対象外"
+    },
+    "translation": {
+      "masterBadge": "マスター (ja)",
+      "approve": "承認",
+      "retranslate": "再翻訳",
+      "exclude": "このロケールを対象外にする",
+      "include": "対象外を解除",
+      "queueAll": "全ロケールへ翻訳",
+      "queued": "再翻訳をキューに入れました",
+      "queuedAll": "全ロケールの翻訳をキューに入れました",
+      "excludedNote": "このロケールは配信対象外(excluded)です。一覧・sitemap・フィードに表示されません。"
+    },
+    "glossary": {
+      "title": "用語辞書",
+      "pendingCount": "pending {count}件",
+      "searchPlaceholder": "日本語・ロケール表記・エイリアス横断検索",
+      "allStatuses": "全ステータス",
+      "allTypes": "全タイプ",
+      "status": {
+        "pending": "未確定",
+        "verified": "確認済み",
+        "locked": "ロック",
+        "deprecated": "廃止"
+      },
+      "type": {
+        "series": "作品",
+        "character": "キャラクター",
+        "person": "人物",
+        "studio": "スタジオ",
+        "company": "企業",
+        "event": "イベント",
+        "product": "商品",
+        "music": "楽曲",
+        "term": "用語"
+      },
+      "bulkVerify": "選択を一括承認",
+      "bulkHint": "pending の用語をまとめて verified にします",
+      "doNotTranslate": "原語のまま",
+      "source": "出典",
+      "aliases": "エイリアス",
+      "edit": "編集",
+      "save": "保存",
+      "add": "用語を追加",
+      "delete": "削除"
+    },
+    "series": {
+      "title": "作品管理",
+      "counts": "記事{articles} / 投稿{fans}",
+      "edit": "編集",
+      "save": "保存",
+      "add": "作品を追加",
+      "delete": "削除"
+    },
+    "translations": {
+      "title": "翻訳キュー",
+      "needsReview": "要レビュー",
+      "machine": "機械翻訳(未承認)",
+      "bulkApprove": "選択を一括承認",
+      "empty": "対象の翻訳はありません",
+      "columns": {
+        "article": "記事",
+        "locale": "ロケール",
+        "translatedTitle": "訳文タイトル",
+        "updatedAt": "更新"
+      }
+    },
+    "moderation": {
+      "title": "モデレーション",
+      "empty": "承認待ちの投稿はありません",
+      "reasonPlaceholder": "却下理由(投稿者に通知)",
+      "approve": "承認",
+      "reject": "却下",
+      "auditLog": "監査ログ"
+    },
+    "prize": {
+      "title": "週次プライズ",
+      "cycles": "サイクル",
+      "empty": "サイクルはありません",
+      "votes": "{count}票",
+      "decide": "受賞確定",
+      "noVotes": "投票はまだありません",
+      "awards": "発行記録",
+      "sent": "送付済み",
+      "save": "保存",
+      "catalog": "賞品カタログ(地域→賞品)",
+      "active": "有効",
+      "add": "追加",
+      "columns": {
+        "week": "週",
+        "winner": "受賞者",
+        "reward": "賞品",
+        "code": "コード",
+        "status": "状態"
+      }
+    },
+    "partners": {
+      "title": "事業者",
+      "empty": "事業者はまだ登録されていません",
+      "status": {
+        "pending": "審査待ち",
+        "approved": "承認済み",
+        "suspended": "停止中"
+      },
+      "trusted": "信頼済み(即時公開)",
+      "prCount": "PR {count}件",
+      "noMembers": "担当者なし",
+      "approve": "承認",
+      "suspend": "停止",
+      "trust": "信頼済みにする",
+      "untrust": "信頼を解除"
+    },
+    "jobs": {
+      "title": "ジョブキュー",
+      "active": "実行中・待機・失敗",
+      "empty": "ジョブはありません",
+      "columns": {
+        "type": "種別",
+        "payload": "内容",
+        "status": "状態",
+        "attempts": "試行",
+        "error": "エラー"
+      }
+    }
+  },
+  "partner": {
+    "title": "事業者ポータル",
+    "intro": "プレスリリースの投稿・配信ができます。アカウント登録後、管理者の審査を経て利用開始できます。",
+    "login": "ログイン",
+    "register": "アカウント登録",
+    "loginError": "メールアドレスまたはパスワードが正しくありません",
+    "noOrganization": "所属する事業者が見つかりません。管理者にお問い合わせください。",
+    "orgStatus": {
+      "pending": "審査待ち",
+      "approved": "承認済み",
+      "suspended": "停止中"
+    },
+    "trusted": "信頼済み(即時公開)",
+    "publicPage": "公開企業ページ",
+    "pendingNotice": "アカウントは審査中です。承認されるとプレスリリースを投稿できます。",
+    "suspendedNotice": "このアカウントは停止されています。お問い合わせください。",
+    "myReleases": "投稿したプレスリリース",
+    "empty": "まだ投稿はありません",
+    "status": {
+      "draft": "下書き",
+      "review": "編集部レビュー中",
+      "scheduled": "予約公開",
+      "published": "公開中",
+      "archived": "アーカイブ"
+    },
+    "submit": {
+      "title": "プレスリリースを投稿",
+      "titleLabel": "タイトル",
+      "leadLabel": "リード文",
+      "bodyLabel": "本文",
+      "bodyPlaceholder": "空行で段落を区切ります。「## 」で始まる行は小見出しになります。",
+      "originalLocale": "原文言語",
+      "embargo": "解禁日時(embargo・任意)",
+      "translationOption": "翻訳オプション",
+      "translateAll": "AI翻訳して全言語で配信(既定)",
+      "translateNone": "翻訳不要(投稿言語のみで公開)",
+      "translateCustom": "言語を個別選択",
+      "contact": "問い合わせ先",
+      "submitButton": "送信",
+      "submitted": "送信しました。編集部レビュー後に公開されます。",
+      "errors": {
+        "unauthorized": "ログインが必要です",
+        "turnstile": "認証に失敗しました。再度お試しください",
+        "org_not_approved": "事業者アカウントが未承認です",
+        "invalid": "入力内容を確認してください",
+        "no_category": "システムエラー(カテゴリー未設定)"
+      }
+    },
+    "registerForm": {
+      "title": "事業者アカウント登録",
+      "note": "登録後、管理者による審査・承認を経て投稿できるようになります。",
+      "companyName": "企業名",
+      "websiteUrl": "企業サイトURL",
+      "contactName": "担当者名",
+      "email": "メールアドレス",
+      "emailNote": "企業ドメインのメールアドレスを推奨します(審査で確認します)",
+      "password": "パスワード(8文字以上)",
+      "submit": "登録する",
+      "errors": {
+        "turnstile": "認証に失敗しました",
+        "invalid": "入力内容を確認してください",
+        "email_taken": "このメールアドレスは既に使われています"
+      }
+    }
+  },
+  "my": {
+    "title": "マイページ",
+    "signInPrompt": "投稿・投票にはログインが必要です(Google / X / Discord)",
+    "signIn": "ログイン",
+    "newPost": "新しい投稿",
+    "moderationNote": "すべての投稿は公開前にレビューされます。公式画像・アニメ本編のスクリーンショットは投稿できません(埋め込みを除く)。",
+    "myPosts": "自分の投稿",
+    "empty": "まだ投稿はありません",
+    "status": {
+      "pending": "審査中",
+      "approved": "公開中",
+      "rejected": "却下",
+      "hidden": "非表示"
+    },
+    "form": {
+      "series": "作品(必須)",
+      "type": "投稿タイプ",
+      "types": {
+        "illustration": "自作イラスト",
+        "cosplay": "コスプレ",
+        "photo": "写真(グッズ・聖地)",
+        "text": "感想・考察",
+        "embed": "SNS埋め込み"
+      },
+      "images": "画像(最大4枚)",
+      "imagesNote": "自作の画像のみ。公式画像・本編スクショは禁止です。",
+      "embedUrl": "埋め込みURL",
+      "embedNote": "X / Instagram / TikTok / YouTube の公開投稿URL",
+      "body": "本文・キャプション",
+      "language": "本文の言語",
+      "birthMonth": "生年月(年齢確認)",
+      "terms": "自作であること・第三者の権利を侵害しないことに同意し、掲載許諾(非独占・出典表示)を含む利用規約に同意します。",
+      "submit": "投稿する",
+      "submitted": "投稿しました。レビュー後に公開されます。",
+      "errors": {
+        "unauthenticated": "ログインが必要です",
+        "turnstile": "認証に失敗しました",
+        "invalid": "入力内容を確認してください",
+        "birth_month_required": "生年月を入力してください",
+        "underage": "利用規約の最低年齢を満たしていません",
+        "series_not_found": "作品を選択してください",
+        "embed_url_required": "埋め込みURLを入力してください",
+        "body_required": "本文を入力してください",
+        "media_required": "画像をアップロードしてください",
+        "embed_host_not_allowed": "対応していない埋め込み元です"
+      }
     }
   }
 }

@@ -20,7 +20,9 @@ export function VoteButton({
   const [pending, startTransition] = useTransition();
 
   if (!signedIn) {
+    // ロケール外ルートへの遷移のため <a> を使用
     return (
+      // eslint-disable-next-line @next/next/no-html-link-for-pages
       <a
         href="/api/auth/signin"
         className="inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-1.5 text-sm text-gray hover:border-primary hover:text-primary"

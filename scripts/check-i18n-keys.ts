@@ -1,7 +1,7 @@
 /**
  * 翻訳キーの追加漏れ検知(CI用)。
- * - 公開サイト: zh-Hant / en の site.json のキー集合が一致すること
- * - 管理画面: zh-Hant / en / ja の admin.json のキー集合が一致すること
+ * - 公開サイト: en / ko / zh-Hant / th / zh-Hans の site.json のキー集合が一致すること
+ * - 管理画面: ja / en の admin.json のキー集合が一致すること
  */
 import { readFileSync } from "fs";
 import path from "path";
@@ -34,7 +34,7 @@ function compare(file: string, locales: string[]): boolean {
   return ok;
 }
 
-const siteOk = compare("site.json", ["zh-Hant", "en"]);
-const adminOk = compare("admin.json", ["zh-Hant", "en", "ja"]);
+const siteOk = compare("site.json", ["en", "ko", "zh-Hant", "th", "zh-Hans"]);
+const adminOk = compare("admin.json", ["ja", "en"]);
 
 if (!siteOk || !adminOk) process.exit(1);

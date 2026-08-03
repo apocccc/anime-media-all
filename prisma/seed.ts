@@ -56,30 +56,25 @@ function hoursAgo(h: number): Date {
   return new Date(Date.now() - h * 60 * 60 * 1000);
 }
 
-/* ---------- サムネイル自動生成 ---------- */
+/* ---------- サムネイル自動生成(マット単色。グラデーション禁止) ---------- */
 
 const PALETTES: [string, string][] = [
-  ["#1D2F8C", "#D7263D"],
-  ["#0F7B6C", "#63D471"],
-  ["#8C1D6E", "#FF6B9D"],
-  ["#B8860B", "#FFD166"],
-  ["#2F4858", "#86BBD8"],
-  ["#6A0572", "#AB83A1"],
+  ["#139a9f", "#fad157"],
+  ["#eb4e5d", "#fffdf9"],
+  ["#89649b", "#fad157"],
+  ["#fad157", "#141d28"],
+  ["#96cab4", "#141d28"],
+  ["#f17285", "#fffdf9"],
 ];
 
 async function makeThumb(index: number, label: string): Promise<string> {
-  const [from, to] = PALETTES[index % PALETTES.length];
+  const [base, accent] = PALETTES[index % PALETTES.length];
   const svg = `<svg width="1200" height="675" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${from}"/>
-      <stop offset="100%" stop-color="${to}"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="675" fill="url(#g)"/>
-  <circle cx="1020" cy="120" r="220" fill="#ffffff22"/>
-  <circle cx="140" cy="560" r="160" fill="#00000022"/>
-  <text x="60" y="360" font-family="sans-serif" font-size="88" font-weight="900" fill="#ffffff">${label}</text>
+  <rect width="1200" height="675" fill="${base}"/>
+  <rect x="16" y="16" width="1168" height="643" fill="none" stroke="#141d28" stroke-width="12"/>
+  <circle cx="1000" cy="140" r="150" fill="${accent}" stroke="#141d28" stroke-width="10"/>
+  <path d="M170 480 l40 84 92 14 -66 66 15 92 -81 -44 -81 44 15 -92 -66 -66 92 -14 Z" fill="${accent}" stroke="#141d28" stroke-width="10" stroke-linejoin="round"/>
+  <text x="90" y="400" font-family="sans-serif" font-size="120" font-weight="900" fill="#141d28">${label}</text>
 </svg>`;
   const dir = path.join(process.cwd(), "public", "uploads", "seed");
   await mkdir(dir, { recursive: true });
@@ -292,6 +287,128 @@ const SAMPLES: SampleArticle[] = [
           "最新产业报告显示,动画市场规模再创历史新高。",
           { h2: "海外市场增长" },
           "流媒体平台扩张与授权业务增长是主要背景。",
+        ],
+      },
+    },
+  },
+  {
+    slugBase: "one-punch-manga-final-arc",
+    category: "manga",
+    hoursAgo: 14,
+    texts: {
+      ja: {
+        title: "人気マンガが最終章に突入 コミックス最新巻が発売",
+        lead: "連載中の人気マンガが最終章に突入し、コミックス最新巻が発売された。",
+        paragraphs: [
+          "連載中の人気マンガが最終章に突入したことが発表された。",
+          { h2: "最新巻の内容" },
+          "コミックス最新巻には物語の核心に迫るエピソードが収録されている。",
+        ],
+      },
+      en: {
+        title: "Hit Manga Enters Its Final Arc as Newest Volume Goes on Sale",
+        lead: "A long-running hit manga has entered its final arc, with the latest collected volume now on sale.",
+        paragraphs: [
+          "A long-running hit manga has officially entered its final arc.",
+          { h2: "Inside the new volume" },
+          "The newest collected volume includes chapters that cut to the heart of the story.",
+        ],
+      },
+      ko: {
+        title: "인기 만화 최종장 돌입, 단행본 최신권 발매",
+        lead: "연재 중인 인기 만화가 최종장에 돌입했으며 단행본 최신권이 발매되었다.",
+        paragraphs: [
+          "연재 중인 인기 만화가 최종장에 돌입했다고 발표되었다.",
+          { h2: "최신권의 내용" },
+          "단행본 최신권에는 이야기의 핵심에 다가서는 에피소드가 수록되어 있다.",
+        ],
+      },
+      zh_Hant: {
+        title: "人氣漫畫進入最終章 最新單行本開賣",
+        lead: "連載中的人氣漫畫進入最終章,最新單行本同步開賣。",
+        paragraphs: [
+          "連載中的人氣漫畫宣布進入最終章。",
+          { h2: "最新單行本內容" },
+          "最新單行本收錄了直指故事核心的篇章。",
+        ],
+      },
+      th: {
+        title: "มังงะยอดฮิตเข้าสู่บทสุดท้าย เล่มล่าสุดวางจำหน่ายแล้ว",
+        lead: "มังงะยอดฮิตที่ตีพิมพ์มายาวนานเข้าสู่บทสุดท้าย พร้อมเล่มรวมล่าสุดวางจำหน่ายแล้ว",
+        paragraphs: [
+          "มังงะยอดฮิตประกาศเข้าสู่บทสุดท้ายอย่างเป็นทางการ",
+          { h2: "เนื้อหาเล่มล่าสุด" },
+          "เล่มรวมล่าสุดบรรจุตอนที่เจาะลึกแก่นของเรื่องราว",
+        ],
+      },
+      zh_Hans: {
+        title: "人气漫画进入最终章 最新单行本开卖",
+        lead: "连载中的人气漫画进入最终章,最新单行本同步开卖。",
+        paragraphs: [
+          "连载中的人气漫画宣布进入最终章。",
+          { h2: "最新单行本内容" },
+          "最新单行本收录了直指故事核心的篇章。",
+        ],
+      },
+    },
+  },
+  {
+    slugBase: "anime-expo-collab-cafe-open",
+    category: "event",
+    hoursAgo: 20,
+    texts: {
+      ja: {
+        title: "大型アニメイベント開催決定 コラボカフェも同時オープン",
+        lead: "大型アニメイベントの開催が決定し、会場近くにコラボカフェも同時オープンする。",
+        paragraphs: [
+          "大型アニメイベントの開催が正式に決定した。",
+          { h2: "コラボカフェ" },
+          "会場近くには期間限定のコラボカフェもオープンし、限定メニューとグッズが提供される。",
+        ],
+      },
+      en: {
+        title: "Major Anime Event Confirmed with a Collab Cafe Opening Alongside",
+        lead: "A major anime event has been confirmed, with a limited-time collab cafe opening near the venue.",
+        paragraphs: [
+          "A major anime event has been officially confirmed.",
+          { h2: "The collab cafe" },
+          "A limited-time collab cafe will open near the venue, serving exclusive menu items and goods.",
+        ],
+      },
+      ko: {
+        title: "대형 애니메이션 이벤트 개최 확정, 콜라보 카페도 동시 오픈",
+        lead: "대형 애니메이션 이벤트 개최가 확정되었으며 행사장 인근에 콜라보 카페도 동시 오픈한다.",
+        paragraphs: [
+          "대형 애니메이션 이벤트 개최가 공식 확정되었다.",
+          { h2: "콜라보 카페" },
+          "행사장 인근에는 기간 한정 콜라보 카페가 오픈해 한정 메뉴와 굿즈를 제공한다.",
+        ],
+      },
+      zh_Hant: {
+        title: "大型動畫活動確定舉辦 聯名咖啡廳同步開幕",
+        lead: "大型動畫活動確定舉辦,會場附近的期間限定聯名咖啡廳也同步開幕。",
+        paragraphs: [
+          "大型動畫活動正式確定舉辦。",
+          { h2: "聯名咖啡廳" },
+          "會場附近將開設期間限定聯名咖啡廳,提供限定餐點與周邊商品。",
+        ],
+      },
+      th: {
+        title: "ยืนยันจัดอีเวนต์อนิเมะครั้งใหญ่ พร้อมเปิดคาเฟ่คอลแลบ",
+        lead: "อีเวนต์อนิเมะครั้งใหญ่ได้รับการยืนยันแล้ว พร้อมคาเฟ่คอลแลบแบบจำกัดเวลาใกล้สถานที่จัดงาน",
+        paragraphs: [
+          "อีเวนต์อนิเมะครั้งใหญ่ได้รับการยืนยันอย่างเป็นทางการ",
+          { h2: "คาเฟ่คอลแลบ" },
+          "คาเฟ่คอลแลบแบบจำกัดเวลาจะเปิดใกล้สถานที่จัดงาน พร้อมเมนูและสินค้าสุดพิเศษ",
+        ],
+      },
+      zh_Hans: {
+        title: "大型动画活动确定举办 联名咖啡厅同步开业",
+        lead: "大型动画活动确定举办,会场附近的期间限定联名咖啡厅也同步开业。",
+        paragraphs: [
+          "大型动画活动正式确定举办。",
+          { h2: "联名咖啡厅" },
+          "会场附近将开设期间限定联名咖啡厅,提供限定餐点与周边商品。",
         ],
       },
     },

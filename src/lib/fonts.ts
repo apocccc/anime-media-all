@@ -1,4 +1,6 @@
 import {
+  Anton,
+  Barlow_Condensed,
   Inter,
   Noto_Sans_KR,
   Noto_Sans_TC,
@@ -6,10 +8,27 @@ import {
   Noto_Sans_Thai,
 } from "next/font/google";
 
-/**
- * ロケール単位でフォントを出し分ける(全部を常時読み込まない)。
- * layout 側で fontForLocale(locale) の variable + className だけを適用する。
+/*
+ * フォント構成(デザイン仕様書 §4)
+ * - ロゴ・大見出し: Anton
+ * - セクション見出し: Barlow Condensed 700/800
+ * - 本文・UI: Inter(欧文)+ ロケール別 Noto Sans(全部を常時読み込まない)
+ * CJK・タイ語の見出しは各ロケールの本文フォントへフォールバックする。
  */
+
+export const anton = Anton({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-anton",
+  display: "swap",
+});
+
+export const barlowCondensed = Barlow_Condensed({
+  weight: ["600", "700", "800"],
+  subsets: ["latin"],
+  variable: "--font-barlow",
+  display: "swap",
+});
 
 export const inter = Inter({
   subsets: ["latin"],
@@ -58,6 +77,11 @@ export function fontForLocale(locale: string) {
     default:
       return inter;
   }
+}
+
+/** 見出し・ロゴ用フォント変数(全ロケール共通で読み込む) */
+export function displayFontVariables(): string {
+  return `${anton.variable} ${barlowCondensed.variable}`;
 }
 
 /** タイ語のみ行間1.95(声調記号が潰れるため)。他は既定1.8 */

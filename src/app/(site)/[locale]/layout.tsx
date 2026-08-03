@@ -3,7 +3,11 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing, type SiteLocale } from "@/i18n/routing";
-import { fontForLocale, lineHeightClassForLocale } from "@/lib/fonts";
+import {
+  displayFontVariables,
+  fontForLocale,
+  lineHeightClassForLocale,
+} from "@/lib/fonts";
 import { localeMeta, PUBLIC_LOCALES } from "@/lib/locale";
 import { getVisibleCategories } from "@/lib/data";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -73,7 +77,7 @@ export default async function SiteLayout({
   return (
     <html lang={locale}>
       <body
-        className={`${font.variable} ${font.className} font-sans bg-bg text-ink min-h-screen flex flex-col ${lineHeightClassForLocale(locale)}`}
+        className={`${font.variable} ${displayFontVariables()} font-sans bg-bg text-ink min-h-screen flex flex-col ${lineHeightClassForLocale(locale)}`}
       >
         <JsonLd data={[organizationJsonLd(), webSiteJsonLd(locale)]} />
         {/* 公開サイトのみ計測(管理画面は別レイアウトのため対象外) */}

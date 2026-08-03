@@ -137,7 +137,13 @@
     "fans": "Fan Posts",
     "prize": "Weekly Prize",
     "forPartners": "For Businesses (Press Release)",
-    "copyright": "© {year} {name}. All rights reserved."
+    "copyright": "© {year} {name}. All rights reserved.",
+    "followUs": "FOLLOW US",
+    "newsletter": "NEWSLETTER",
+    "newsletterNote": "Get the latest anime news straight to your inbox!",
+    "emailPlaceholder": "Enter your email",
+    "subscribe": "SUBSCRIBE",
+    "stayOtaku": "STAY OTAKU!"
   },
   "pages": {
     "about": {
@@ -158,5 +164,28 @@
     "title": "Page not found",
     "description": "The page you are looking for does not exist or has been moved.",
     "backHome": "Back to home"
+  },
+  "ticker": {
+    "live": "LIVE NOW!",
+    "readNow": "READ NOW"
+  },
+  "hero": {
+    "featured": "FEATURED",
+    "viewDetails": "VIEW DETAILS",
+    "burstTop": "HOT",
+    "burstBottom": "TOPIC!"
+  },
+  "community": {
+    "line1": "JOIN THE",
+    "line2": "ANIME",
+    "line3": "CREW!",
+    "bubble1": "DISCUSS!",
+    "bubble2": "SHARE!",
+    "bubble3": "DISCOVER!",
+    "bubble4": "BE PART OF THE STORY!",
+    "cta": "SIGN UP FREE"
+  },
+  "home": {
+    "viewAllRankings": "VIEW ALL RANKINGS"
   }
 }

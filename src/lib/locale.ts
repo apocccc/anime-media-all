@@ -26,6 +26,8 @@ export function isPublicLocale(locale: string): locale is SiteLocale {
 type LocaleMeta = {
   /** ネイティブ表記のラベル(言語スイッチャー用) */
   label: string;
+  /** コンパクト表示用の短縮ラベル(§11 の EN 表示) */
+  short: string;
   /** Intl.DateTimeFormat などに渡すロケール */
   intl: string;
   /** og:locale */
@@ -35,11 +37,11 @@ type LocaleMeta = {
 };
 
 export const LOCALE_META: Record<SiteLocale, LocaleMeta> = {
-  en: { label: "English", intl: "en-US", og: "en_US", rss: "en" },
-  ko: { label: "한국어", intl: "ko-KR", og: "ko_KR", rss: "ko" },
-  "zh-Hant": { label: "繁體中文", intl: "zh-TW", og: "zh_TW", rss: "zh-tw" },
-  th: { label: "ไทย", intl: "th-TH", og: "th_TH", rss: "th" },
-  "zh-Hans": { label: "简体中文", intl: "zh-CN", og: "zh_CN", rss: "zh-cn" },
+  en: { label: "English", short: "EN", intl: "en-US", og: "en_US", rss: "en" },
+  ko: { label: "한국어", short: "KO", intl: "ko-KR", og: "ko_KR", rss: "ko" },
+  "zh-Hant": { label: "繁體中文", short: "繁中", intl: "zh-TW", og: "zh_TW", rss: "zh-tw" },
+  th: { label: "ไทย", short: "TH", intl: "th-TH", og: "th_TH", rss: "th" },
+  "zh-Hans": { label: "简体中文", short: "简中", intl: "zh-CN", og: "zh_CN", rss: "zh-cn" },
 };
 
 export function localeMeta(locale: string): LocaleMeta {

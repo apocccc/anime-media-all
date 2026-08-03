@@ -137,7 +137,13 @@
     "fans": "팬 게시물",
     "prize": "주간 프라이즈",
     "forPartners": "기업용(보도자료 게재)",
-    "copyright": "© {year} {name}. All rights reserved."
+    "copyright": "© {year} {name}. All rights reserved.",
+    "followUs": "FOLLOW US",
+    "newsletter": "뉴스레터",
+    "newsletterNote": "최신 애니메이션 뉴스를 메일로 받아보세요!",
+    "emailPlaceholder": "이메일 주소 입력",
+    "subscribe": "구독하기",
+    "stayOtaku": "STAY OTAKU!"
   },
   "pages": {
     "about": {
@@ -158,5 +164,28 @@
     "title": "페이지를 찾을 수 없습니다",
     "description": "찾으시는 페이지가 존재하지 않거나 이동되었습니다.",
     "backHome": "홈으로 돌아가기"
+  },
+  "ticker": {
+    "live": "LIVE NOW!",
+    "readNow": "지금 읽기"
+  },
+  "hero": {
+    "featured": "FEATURED",
+    "viewDetails": "자세히 보기",
+    "burstTop": "HOT",
+    "burstBottom": "TOPIC!"
+  },
+  "community": {
+    "line1": "JOIN THE",
+    "line2": "ANIME",
+    "line3": "CREW!",
+    "bubble1": "이야기하고!",
+    "bubble2": "공유하고!",
+    "bubble3": "발견하고!",
+    "bubble4": "이야기의 일부가 되자!",
+    "cta": "무료로 가입"
+  },
+  "home": {
+    "viewAllRankings": "전체 랭킹 보기"
   }
 }

@@ -137,7 +137,13 @@
     "fans": "โพสต์แฟนคลับ",
     "prize": "รางวัลประจำสัปดาห์",
     "forPartners": "สำหรับธุรกิจ (ลงข่าวประชาสัมพันธ์)",
-    "copyright": "© {year} {name}. All rights reserved."
+    "copyright": "© {year} {name}. All rights reserved.",
+    "followUs": "FOLLOW US",
+    "newsletter": "จดหมายข่าว",
+    "newsletterNote": "รับข่าวอนิเมะล่าสุดตรงถึงกล่องจดหมายของคุณ!",
+    "emailPlaceholder": "กรอกอีเมลของคุณ",
+    "subscribe": "สมัครรับข่าว",
+    "stayOtaku": "STAY OTAKU!"
   },
   "pages": {
     "about": {
@@ -158,5 +164,28 @@
     "title": "ไม่พบหน้านี้",
     "description": "หน้าที่คุณกำลังค้นหาไม่มีอยู่หรือถูกย้ายแล้ว",
     "backHome": "กลับหน้าแรก"
+  },
+  "ticker": {
+    "live": "LIVE NOW!",
+    "readNow": "อ่านเลย"
+  },
+  "hero": {
+    "featured": "FEATURED",
+    "viewDetails": "ดูรายละเอียด",
+    "burstTop": "HOT",
+    "burstBottom": "TOPIC!"
+  },
+  "community": {
+    "line1": "JOIN THE",
+    "line2": "ANIME",
+    "line3": "CREW!",
+    "bubble1": "พูดคุย!",
+    "bubble2": "แชร์!",
+    "bubble3": "ค้นพบ!",
+    "bubble4": "มาเป็นส่วนหนึ่งของเรื่องราว!",
+    "cta": "สมัครฟรี"
+  },
+  "home": {
+    "viewAllRankings": "ดูอันดับทั้งหมด"
   }
 }

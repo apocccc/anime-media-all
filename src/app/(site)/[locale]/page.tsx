@@ -1,5 +1,4 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import {
   getBreakingArticles,
@@ -7,19 +6,24 @@ import {
   getLatestArticles,
   getPinnedArticles,
   getPopularArticles,
-  getPressReleases,
-  pickTranslation,
 } from "@/lib/data";
-import { toDbLocale, localeMeta } from "@/lib/locale";
-import { HeroCard } from "@/components/site/ArticleCard";
+import { toDbLocale } from "@/lib/locale";
+import { BreakingTicker } from "@/components/site/BreakingTicker";
+import { FeaturedHero } from "@/components/site/FeaturedHero";
+import { SideStoryCard } from "@/components/site/SideStoryCard";
+import { MostReadPanel } from "@/components/site/MostReadPanel";
+import { CategoryPanel } from "@/components/site/CategoryPanel";
+import { CommunityPromo } from "@/components/site/CommunityPromo";
 import { HeadlineList } from "@/components/site/HeadlineList";
-import { RankingList } from "@/components/site/RankingList";
-import { CategorySection } from "@/components/site/CategorySection";
 import { SectionHeading } from "@/components/site/SectionHeading";
-import { articlePath, formatTokyoShort } from "@/lib/site";
 
 export const revalidate = 300;
 
+/**
+ * トップページ(デザイン仕様書 §5)。
+ * BreakingTicker → MainTopGrid(Hero / SideStories / MostRead)
+ * → LowerContentGrid(カテゴリーパネル×3 / CommunityPromo)→ 最新見出し。
+ */
 export default async function HomePage({
   params,
 }: {
@@ -30,209 +34,83 @@ export default async function HomePage({
   const t = await getTranslations();
   const db = toDbLocale(locale);
 
-  const [pinned, latest, breaking, pressReleases, popular, digests] =
-    await Promise.all([
-      getPinnedArticles(db, 5),
-      getLatestArticles(db, 30, false),
-      getBreakingArticles(db, 3),
-      getPressReleases(db, 6),
-      getPopularArticles(db, 10),
-      getCategoryDigests(db, 4),
-    ]);
+  const [pinned, latest, breaking, popular, digests] = await Promise.all([
+    getPinnedArticles(db, 3),
+    getLatestArticles(db, 24, false),
+    getBreakingArticles(db, 1),
+    getPopularArticles(db, 5),
+    getCategoryDigests(db, 3),
+  ]);
 
   const hero = pinned[0] ?? latest[0];
-  // サブトップはピン留め記事を優先し、足りない分は最新記事で4件まで埋める
-  const subTop: typeof latest = [];
-  for (const a of [...pinned.slice(1), ...latest]) {
-    if (subTop.length >= 4) break;
-    if (a.id === hero?.id || subTop.some((s) => s.id === a.id)) continue;
-    subTop.push(a);
-  }
-  const heroIds = new Set([hero?.id, ...subTop.map((a) => a.id)]);
-  const rest = latest.filter((a) => !heroIds.has(a.id));
+  const sideStories = latest.filter((a) => a.id !== hero?.id).slice(0, 2);
+  const usedIds = new Set([hero?.id, ...sideStories.map((a) => a.id)]);
+  const rest = latest.filter((a) => !usedIds.has(a.id));
+  // 下段パネル: news / anime / manga を優先し、足りない分は記事のあるカテゴリーで補完
+  const preferred = ["news", "anime", "manga"];
+  const panels = [
+    ...preferred
+      .map((slug) => digests.find((d) => d.category.slug === slug))
+      .filter((d): d is (typeof digests)[number] => Boolean(d)),
+    ...digests.filter((d) => !preferred.includes(d.category.slug)),
+  ].slice(0, 3);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-4">
-      {/* 速報ティッカー */}
-      {breaking.length > 0 ? (
-        <div className="mb-4 flex items-center gap-3 overflow-hidden border-y-2 border-breaking/80 px-1 py-1.5">
-          <span className="shrink-0 bg-breaking px-2 py-0.5 text-xs font-black text-white">
-            {t("labels.breaking")}
-          </span>
-          <ul className="flex gap-6 overflow-x-auto text-[13.5px] font-bold whitespace-nowrap">
-            {breaking.map((a) => {
-              const tr = pickTranslation(a);
-              if (!tr) return null;
-              return (
-                <li key={a.id}>
-                  <Link
-                    href={articlePath(a.category.slug, a.slug)}
-                    className="hover:text-breaking hover:underline underline-offset-2"
-                  >
-                    {tr.title}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ) : null}
+    <div className="mx-auto w-[calc(100%-24px)] max-w-[1600px] pb-6 xl:w-[calc(100%-72px)]">
+      <BreakingTicker article={breaking[0] ?? latest[0] ?? null} />
 
       {hero ? (
-        <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
-          {/* メインカラム */}
-          <div className="min-w-0">
-            <section aria-label={t("labels.topStories")}>
-              <div className="grid gap-5 md:grid-cols-5">
-                <div className="md:col-span-3">
-                  <HeroCard article={hero} locale={locale} />
-                </div>
-                <div className="md:col-span-2 md:border-l md:border-line md:pl-5">
-                  <ul className="divide-y divide-line">
-                    {subTop.map((a) => {
-                      const tr = pickTranslation(a);
-                      if (!tr) return null;
-                      return (
-                        <li key={a.id}>
-                          <Link
-                            href={articlePath(a.category.slug, a.slug)}
-                            className="group flex gap-2.5 py-2.5 first:pt-0"
-                          >
-                            <div className="relative aspect-[3/2] w-20 shrink-0 overflow-hidden rounded-sm bg-bg-sub">
-                              {a.heroImage ? (
-                                <Image
-                                  src={a.heroImage.url}
-                                  alt={a.heroImage.alt}
-                                  fill
-                                  sizes="80px"
-                                  className="object-cover"
-                                />
-                              ) : (
-                                <span
-                                  aria-hidden="true"
-                                  className="flex h-full w-full items-center justify-center text-lg font-black text-line select-none"
-                                >
-                                  A
-                                </span>
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              {a.isBreaking ? (
-                                <span className="mr-1 inline-block rounded-sm bg-breaking px-1 py-px align-[2px] text-[10px] font-bold text-white">
-                                  {t("labels.breaking")}
-                                </span>
-                              ) : null}
-                              <span className="line-clamp-3 text-[13.5px] font-bold leading-snug group-hover:text-primary">
-                                {tr.title}
-                              </span>
-                              <time
-                                dateTime={(a.publishedAt ?? a.createdAt).toISOString()}
-                                className="mt-0.5 block font-mono text-[11px] text-gray"
-                              >
-                                {formatTokyoShort(
-                                  a.publishedAt ?? a.createdAt,
-                                  localeMeta(locale).intl
-                                )}
-                              </time>
-                            </div>
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </div>
-            </section>
-
-            {/* 最新見出し(高密度リスト) */}
-            {rest.length > 0 ? (
-              <section className="mt-6" aria-label={t("labels.latestNews")}>
-                <div className="flex items-center justify-between border-t-2 border-ink pt-2.5">
-                  <SectionHeading>{t("labels.latestNews")}</SectionHeading>
-                  <Link
-                    href="/category/latest"
-                    className="text-[12.5px] font-medium text-gray hover:text-primary"
-                  >
-                    {t("labels.viewAll")} →
-                  </Link>
-                </div>
-                <div className="mt-1">
-                  <HeadlineList articles={rest.slice(0, 14)} locale={locale} />
-                </div>
-              </section>
-            ) : null}
+        <>
+          {/* 上段: Hero / サイドカード / Most Read(§13) */}
+          <div className="mt-[14px] grid gap-[14px] lg:grid-cols-[minmax(0,854fr)_minmax(240px,278fr)_minmax(340px,420fr)]">
+            <FeaturedHero article={hero} locale={locale} />
+            <div className="grid gap-[12px] sm:grid-cols-2 lg:grid-cols-1 lg:content-start">
+              {sideStories.map((a) => (
+                <SideStoryCard key={a.id} article={a} locale={locale} />
+              ))}
+            </div>
+            <MostReadPanel articles={popular} locale={locale} />
           </div>
 
-          {/* サイドバー */}
-          <aside className="flex flex-col gap-6">
-            <section aria-label={t("labels.ranking")}>
-              <div className="border-t-2 border-primary pt-2.5">
-                <SectionHeading>{t("labels.ranking")}</SectionHeading>
-              </div>
-              <div className="mt-1">
-                <RankingList articles={popular} />
-              </div>
-            </section>
-
-            {/* プレスリリース専用枠(主要ニュース面とは分離) */}
-            {pressReleases.length > 0 ? (
-              <section aria-label={t("labels.pressRelease")}>
-                <div className="flex items-baseline justify-between border-t-2 border-ink pt-2.5">
-                  <SectionHeading>{t("labels.pressRelease")}</SectionHeading>
-                  <Link
-                    href="/category/press-release"
-                    className="text-[11.5px] font-medium text-gray hover:text-primary"
-                  >
-                    {t("labels.viewAll")} →
-                  </Link>
-                </div>
-                <ul className="mt-1 divide-y divide-line">
-                  {pressReleases.map((a) => {
-                    const tr = pickTranslation(a);
-                    if (!tr) return null;
-                    return (
-                      <li key={a.id}>
-                        <Link
-                          href={articlePath(a.category.slug, a.slug)}
-                          className="group block py-2"
-                        >
-                          <span className="line-clamp-2 text-[13px] font-medium leading-snug group-hover:text-primary">
-                            {tr.title}
-                          </span>
-                          {a.organization ? (
-                            <span className="mt-0.5 block text-[11px] text-gray">
-                              {a.organization.name}
-                            </span>
-                          ) : null}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            ) : null}
-          </aside>
-        </div>
-      ) : (
-        <p className="py-20 text-center text-gray">{t("labels.noArticles")}</p>
-      )}
-
-      {/* カテゴリー別セクション群 */}
-      {digests.length > 0 ? (
-        <section className="mt-10">
-          <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-            {digests.map(({ category, articles }) => (
-              <CategorySection
+          {/* 下段: カテゴリーパネル×3 + Community Promo(§17) */}
+          <div className="mt-[26px] grid gap-[14px] md:grid-cols-2 lg:grid-cols-[390fr_370fr_360fr_420fr]">
+            {panels.map(({ category, articles }) => (
+              <CategoryPanel
                 key={category.id}
                 category={category}
                 articles={articles}
                 locale={locale}
-                moreLabel={t("labels.viewAll")}
               />
             ))}
+            <CommunityPromo />
           </div>
-        </section>
-      ) : null}
+
+          {/* 最新見出し(高密度リスト) */}
+          {rest.length > 0 ? (
+            <section
+              className="mt-[26px] rounded-[13px] border-2 border-ink bg-surface px-[14px] pb-2"
+              aria-label={t("labels.latestNews")}
+            >
+              <div className="-mt-[14px] flex items-end justify-between">
+                <SectionHeading color="bg-navy text-white">
+                  {t("labels.latestNews")}
+                </SectionHeading>
+                <Link
+                  href="/category/latest"
+                  className="pb-1 font-heading text-[11px] font-extrabold uppercase text-ink hover:text-primary"
+                >
+                  {t("labels.viewAll")} <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+              <HeadlineList articles={rest.slice(0, 12)} locale={locale} />
+            </section>
+          ) : null}
+        </>
+      ) : (
+        <p className="py-20 text-center font-heading text-lg font-bold text-gray">
+          {t("labels.noArticles")}
+        </p>
+      )}
     </div>
   );
 }

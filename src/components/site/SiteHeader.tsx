@@ -1,11 +1,17 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { categoryName, type CategoryWithTranslations } from "@/lib/categories";
-import { localeMeta } from "@/lib/locale";
-import { formatTokyo, SITE_NAME, TOKYO_TZ } from "@/lib/site";
+import { SITE_NAME } from "@/lib/site";
+import { StarSpark } from "./Doodads";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { SearchForm } from "./SearchForm";
 
+/**
+ * ヘッダー(デザイン仕様書 §6〜§11)。
+ * 高さ88px・下罫線2px。ロゴ / ナビ / 検索 / 言語 / マスコットの1段構成。
+ * 影・グラデーション不使用。
+ */
 export async function SiteHeader({
   categories,
   locale,
@@ -14,70 +20,56 @@ export async function SiteHeader({
   locale: string;
 }) {
   const t = await getTranslations();
-  const now = new Date();
-  const intl = localeMeta(locale).intl;
-  const weekday = new Intl.DateTimeFormat(intl, {
-    weekday: "short",
-    timeZone: TOKYO_TZ,
-  }).format(now);
+  const [logoMain, ...logoRest] = SITE_NAME.split(" ");
+  const logoSub = logoRest.join(" ") || "MEDIA";
 
   return (
-    <header className="border-b border-line bg-bg">
-      {/* 上段: 日付+ユーティリティ */}
-      <div className="border-b border-line bg-bg-sub">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-1 text-[11.5px] text-gray">
-          <p>
-            {formatTokyo(now, intl, {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-            })}
-            ({weekday})
-          </p>
-          <nav className="flex items-center gap-3">
-            <Link href="/about" className="hover:text-primary">
-              {t("footer.about")}
-            </Link>
-            <Link href="/contact" className="hover:text-primary">
-              {t("footer.contact")}
-            </Link>
-            <a href={`/rss/${locale}.xml`} className="hover:text-primary">
-              RSS
-            </a>
-          </nav>
-        </div>
-      </div>
+    <header className="border-b-2 border-ink bg-surface">
+      <div className="mx-auto flex h-[88px] max-w-[1632px] items-center gap-3 px-3 xl:px-5">
+        {/* TODO: 正式なロゴ素材に差し替える。占有サイズと位置は変更しないこと。 */}
+        <Link
+          href="/"
+          className="relative block w-[190px] shrink-0 pl-4 xl:w-[240px]"
+        >
+          <StarSpark size={16} className="absolute -top-1 left-0" />
+          <StarSpark
+            size={12}
+            color="#139a9f"
+            className="absolute bottom-1 right-2"
+          />
+          <span
+            className="block font-display text-[42px] uppercase leading-[0.82] tracking-[-1px] text-primary [-webkit-text-stroke:2px_#141d28] [transform:skewX(-7deg)_rotate(-2deg)] xl:text-[54px]"
+          >
+            {logoMain}
+          </span>
+          <span className="mt-1 block pl-1 font-heading text-[12px] font-bold uppercase tracking-[5px] text-ink">
+            ★ {logoSub}
+          </span>
+        </Link>
 
-      {/* 中段: ロゴ+検索+言語 */}
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="flex items-center justify-between gap-4 py-2.5">
-          <Link href="/" className="flex items-baseline gap-2 shrink-0">
-            <span className="text-[26px] font-black tracking-tight text-primary leading-none">
-              {SITE_NAME}
-            </span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <SearchForm
-              placeholder={t("search.placeholder")}
-              buttonLabel={t("search.button")}
-            />
-            <LanguageSwitcher />
-          </div>
-        </div>
-      </div>
-
-      {/* 下段: カテゴリーナビ(sticky) */}
-      <nav
-        aria-label={t("nav.allCategories")}
-        className="sticky top-0 z-40 border-t-2 border-primary bg-bg shadow-[0_1px_0_var(--color-line)]"
-      >
-        <div className="mx-auto max-w-6xl px-4">
-          <ul className="-mx-1 flex items-center overflow-x-auto text-[14px] font-bold whitespace-nowrap">
+        {/* ナビゲーション(§9)。HOMEのみコーラルのピル */}
+        <nav
+          aria-label={t("nav.allCategories")}
+          className="min-w-0 flex-1 overflow-x-auto"
+        >
+          <ul className="flex items-center gap-1 whitespace-nowrap font-heading text-[15px] font-bold uppercase xl:gap-3">
             <li>
               <Link
                 href="/"
-                className="block border-b-2 border-transparent px-2.5 py-2 hover:border-primary hover:text-primary transition-colors"
+                className="flex h-[50px] w-[62px] flex-col items-center justify-center gap-0.5 rounded-[7px] bg-primary text-[12px] leading-none text-white hover:bg-primary-dark"
               >
+                <svg
+                  aria-hidden="true"
+                  width="16"
+                  height="14"
+                  viewBox="0 0 16 14"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                >
+                  <path d="M1 7 L8 1 L15 7 M3 6 V13 H13 V6" />
+                </svg>
                 {t("nav.home")}
               </Link>
             </li>
@@ -87,7 +79,7 @@ export async function SiteHeader({
                 <li key={c.id}>
                   <Link
                     href={`/category/${c.slug}`}
-                    className="block border-b-2 border-transparent px-2.5 py-2 hover:border-primary hover:text-primary transition-colors"
+                    className="block px-1.5 py-2 text-ink hover:text-primary xl:px-2"
                   >
                     {categoryName(c, locale)}
                   </Link>
@@ -96,7 +88,7 @@ export async function SiteHeader({
             <li>
               <Link
                 href="/fans"
-                className="block border-b-2 border-transparent px-2.5 py-2 hover:border-primary hover:text-primary transition-colors"
+                className="block px-1.5 py-2 text-ink hover:text-primary xl:px-2"
               >
                 {t("nav.fans")}
               </Link>
@@ -104,14 +96,31 @@ export async function SiteHeader({
             <li>
               <Link
                 href="/prize"
-                className="block border-b-2 border-transparent px-2.5 py-2 hover:border-primary hover:text-primary transition-colors"
+                className="block px-1.5 py-2 text-ink hover:text-primary xl:px-2"
               >
                 {t("nav.prize")}
               </Link>
             </li>
           </ul>
+        </nav>
+
+        <SearchForm
+          placeholder={t("search.placeholder")}
+          buttonLabel={t("search.button")}
+        />
+        <LanguageSwitcher />
+
+        {/* TODO: 正式な右上マスコット素材に差し替える。82 × 78 pxの表示領域は維持すること。 */}
+        <div className="hidden h-[78px] w-[82px] shrink-0 lg:block">
+          <Image
+            src="/assets/temp/mascot-placeholder.svg"
+            alt=""
+            width={82}
+            height={78}
+            className="h-full w-full object-contain"
+          />
         </div>
-      </nav>
+      </div>
     </header>
   );
 }

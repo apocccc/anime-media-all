@@ -21,15 +21,9 @@ const CATEGORIES: { slug: string; order: number; names: CategoryNames }[] = [
   { slug: "news", order: 1, names: { ja: "ニュース", en: "News", ko: "뉴스", zh_Hant: "新聞", th: "ข่าว", zh_Hans: "新闻" } },
   { slug: "anime", order: 2, names: { ja: "アニメ", en: "Anime", ko: "애니메이션", zh_Hant: "動畫", th: "อนิเมะ", zh_Hans: "动画" } },
   { slug: "manga", order: 3, names: { ja: "マンガ", en: "Manga", ko: "만화", zh_Hant: "漫畫", th: "มังงะ", zh_Hans: "漫画" } },
-  { slug: "game", order: 4, names: { ja: "ゲーム", en: "Games", ko: "게임", zh_Hant: "遊戲", th: "เกม", zh_Hans: "游戏" } },
-  { slug: "movie", order: 5, names: { ja: "映画", en: "Movies", ko: "영화", zh_Hant: "電影", th: "ภาพยนตร์", zh_Hans: "电影" } },
-  { slug: "event", order: 6, names: { ja: "イベント", en: "Events", ko: "이벤트", zh_Hant: "活動", th: "อีเวนต์", zh_Hans: "活动" } },
-  { slug: "merch", order: 7, names: { ja: "グッズ", en: "Merch", ko: "굿즈", zh_Hant: "周邊", th: "สินค้า", zh_Hans: "周边" } },
-  { slug: "music", order: 8, names: { ja: "音楽", en: "Music", ko: "음악", zh_Hant: "音樂", th: "เพลง", zh_Hans: "音乐" } },
-  { slug: "interview", order: 9, names: { ja: "インタビュー", en: "Interviews", ko: "인터뷰", zh_Hant: "專訪", th: "สัมภาษณ์", zh_Hans: "专访" } },
-  { slug: "industry", order: 10, names: { ja: "業界", en: "Industry", ko: "업계", zh_Hant: "業界", th: "วงการ", zh_Hans: "业界" } },
-  { slug: "press-release", order: 11, names: { ja: "プレスリリース", en: "Press Releases", ko: "보도자료", zh_Hant: "新聞稿", th: "ข่าวประชาสัมพันธ์", zh_Hans: "新闻稿" } },
-  { slug: "fan", order: 12, names: { ja: "ファン投稿", en: "Fan Posts", ko: "팬 게시물", zh_Hant: "粉絲投稿", th: "โพสต์แฟนคลับ", zh_Hans: "粉丝投稿" } },
+  { slug: "event", order: 4, names: { ja: "イベント", en: "Events", ko: "이벤트", zh_Hant: "活動", th: "อีเวนต์", zh_Hans: "活动" } },
+  { slug: "press-release", order: 5, names: { ja: "プレスリリース", en: "Press Releases", ko: "보도자료", zh_Hant: "新聞稿", th: "ข่าวประชาสัมพันธ์", zh_Hans: "新闻稿" } },
+  { slug: "fan", order: 6, names: { ja: "ファン投稿", en: "Fan Posts", ko: "팬 게시물", zh_Hant: "粉絲投稿", th: "โพสต์แฟนคลับ", zh_Hans: "粉丝投稿" } },
 ];
 
 function doc(paragraphs: (string | { h2: string })[]) {
@@ -243,7 +237,7 @@ const SAMPLES: SampleArticle[] = [
   },
   {
     slugBase: "anime-industry-market-report",
-    category: "industry",
+    category: "news",
     hoursAgo: 26,
     texts: {
       ja: {

@@ -1,0 +1,18 @@
+{
+  "buildCommand": "npx prisma migrate deploy && next build",
+  "regions": ["icn1"],
+  "crons": [
+    {
+      "path": "/api/cron/publish",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/rss",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/daily-rewrite",
+      "schedule": "0 23 * * *"
+    }
+  ]
+}

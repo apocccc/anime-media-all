@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // アプリ実行用: Supabase の transaction pooler (6543, pgbouncer=true&connection_limit=10)
+  url      = env("DATABASE_URL")
+  // マイグレーション用: session pooler (5432)。直結 db.<ref>.supabase.co は
+  // IPv6専用のため Vercel からは使わない
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+enum Role {
+  admin
+  editor
+  author
+  contributor
+}
+
+enum ArticleStatus {
+  draft
+  review
+  scheduled
+  published
+  archived
+}
+
+enum AdminLocale {
+  zh_Hant
+  en
+  ja
+}
+
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  passwordHash String
+  name         String
+  slug         String      @unique
+  role         Role        @default(contributor)
+  adminLocale  AdminLocale @default(zh_Hant)
+  avatarUrl    String?
+  bio          String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  articles  Article[]
+  revisions Revision[]
+  media     Media[]
+
+  @@index([role])
+}
+
+model Category {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  nameZh    String
+  nameEn    String
+  order     Int     @default(0)
+  isVisible Boolean @default(true)
+
+  articles Article[]
+  rssFeeds RssFeed[]
+
+  @@index([order])
+}
+
+model Article {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  title        String
+  lead         String        @default("")
+  body         Json
+  status       ArticleStatus @default(draft)
+  publishAt    DateTime?
+  publishedAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  isBreaking   Boolean       @default(false)
+  isPinned     Boolean       @default(false)
+  prSourceName String?
+  viewCount    Int           @default(0)
+
+  // RSS取り込み関連。sourceGuid で重複を防ぎ「先に入ってきたものを優先」
+  sourceFeedId String?
+  sourceFeed   RssFeed? @relation(fields: [sourceFeedId], references: [id], onDelete: SetNull)
+  sourceName   String?
+  sourceUrl    String?
+  sourceGuid   String?  @unique
+  // OpenAI による独自記事化が済んだら true(本文の転載元表記を外し、画像出典のみ残す)
+  isRewritten  Boolean  @default(false)
+
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  heroImageId String?
+  heroImage   Media?   @relation(fields: [heroImageId], references: [id])
+
+  tags      ArticleTag[]
+  revisions Revision[]
+
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([categoryId, status, publishedAt(sort: Desc)])
+  @@index([authorId, status])
+  @@index([status, publishAt])
+}
+
+model Revision {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  snapshot  Json
+  editedBy  String
+  editor    User     @relation(fields: [editedBy], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([articleId, createdAt(sort: Desc)])
+}
+
+model Tag {
+  id     String @id @default(cuid())
+  slug   String @unique
+  nameZh String
+
+  articles ArticleTag[]
+}
+
+model ArticleTag {
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+}
+
+model Media {
+  id         String   @id @default(cuid())
+  url        String
+  width      Int
+  height     Int
+  alt        String   @default("")
+  mimeType   String
+  uploadedBy String
+  uploader   User     @relation(fields: [uploadedBy], references: [id])
+  createdAt  DateTime @default(now())
+
+  articles Article[]
+}
+
+model RssFeed {
+  id                String    @id @default(cuid())
+  name              String
+  url               String    @unique
+  categoryId        String
+  category          Category  @relation(fields: [categoryId], references: [id])
+  autoPublish       Boolean   @default(true)
+  // 自動取り込み(cron)の対象にするか。OFFでも手動「今すぐ取得」は可能
+  isEnabled         Boolean   @default(true)
+  // 自動取り込みの頻度(分)。10/30/60/180/360/720/1440
+  fetchIntervalMinutes Int    @default(60)
+  // 1回の取得で取り込む最大件数 (1〜30)
+  fetchLimit        Int       @default(10)
+  lastFetchedAt     DateTime?
+  lastError         String?
+  lastImportedCount Int       @default(0)
+  createdAt         DateTime  @default(now())
+
+  articles Article[]
+}
+
+model Redirect {
+  id         String   @id @default(cuid())
+  fromPath   String   @unique
+  toPath     String
+  statusCode Int      @default(301)
+  createdAt  DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value Json
+}

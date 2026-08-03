@@ -11,10 +11,8 @@ import { ConfettiDot, Star5, StarSpark } from "./Doodads";
  */
 export async function FeaturedHero({
   article,
-  locale,
 }: {
   article: ArticleListItem;
-  locale: string;
 }) {
   const tr = pickTranslation(article);
   if (!tr) return null;

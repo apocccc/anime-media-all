@@ -25,7 +25,7 @@ export function VoteButton({
       // eslint-disable-next-line @next/next/no-html-link-for-pages
       <a
         href="/api/auth/signin"
-        className="inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-1.5 text-sm text-gray hover:border-primary hover:text-primary"
+        className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-surface px-4 py-1.5 font-heading text-sm font-extrabold uppercase text-ink hover:bg-yellow"
       >
         ♥ {labels.loginToVote}
       </a>
@@ -47,7 +47,7 @@ export function VoteButton({
           }
         })
       }
-      className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
+      className={`inline-flex items-center gap-1.5 rounded-full border-2 border-ink px-4 py-1.5 font-heading text-sm font-extrabold uppercase transition-colors ${
         voted
           ? "bg-primary-light text-primary-dark"
           : "bg-primary text-white hover:bg-primary-dark"

@@ -104,7 +104,7 @@ export default async function SeriesPage({
       {/* ヘッダー */}
       <header className="mt-4 flex flex-col gap-5 sm:flex-row">
         {series.heroImage ? (
-          <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden rounded-lg sm:w-80">
+          <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden rounded-[13px] border-2 border-ink sm:w-80">
             <Image
               src={series.heroImage.url}
               alt={series.heroImage.alt || title}
@@ -116,8 +116,10 @@ export default async function SeriesPage({
           </div>
         ) : null}
         <div className="min-w-0">
-          <h1 className="text-[28px] font-black leading-snug">{title}</h1>
-          <p className="mt-1 text-sm text-gray">{series.titleJa}</p>
+          <h1 className="font-display text-[34px] uppercase leading-[1.05] text-ink">
+            {title}
+          </h1>
+          <p className="mt-1.5 text-sm text-gray">{series.titleJa}</p>
           {synopsis ? (
             <p className="mt-3 text-[14.5px] leading-relaxed">{synopsis}</p>
           ) : null}
@@ -127,9 +129,12 @@ export default async function SeriesPage({
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_300px]">
         <div className="min-w-0">
           {/* ニュース */}
-          <section aria-label={t("series.newsTab")}>
-            <div className="border-t-2 border-ink pt-2.5">
-              <SectionHeading>
+          <section
+            aria-label={t("series.newsTab")}
+            className="rounded-[13px] border-2 border-ink bg-surface px-[12px] pb-3"
+          >
+            <div className="-mt-[14px]">
+              <SectionHeading color="bg-teal text-white">
                 {t("series.latestNews", { title })}
               </SectionHeading>
             </div>
@@ -138,23 +143,37 @@ export default async function SeriesPage({
                 {t("labels.noArticles")}
               </p>
             ) : (
-              <div className="mt-4 flex flex-col gap-5">
-                {news.map((a) => (
-                  <ArticleCard key={a.id} article={a} locale={locale} />
+              <div className="mt-1">
+                {news.map((a, i) => (
+                  <div
+                    key={a.id}
+                    className={`py-4 ${
+                      i < news.length - 1
+                        ? "border-b border-dashed border-dash"
+                        : ""
+                    }`}
+                  >
+                    <ArticleCard article={a} locale={locale} />
+                  </div>
                 ))}
               </div>
             )}
           </section>
 
           {/* ファン投稿 */}
-          <section className="mt-10" aria-label={t("series.fansTab")}>
-            <div className="flex items-baseline justify-between border-t-2 border-primary pt-2.5">
-              <SectionHeading>{t("series.fanPostsFor", { title })}</SectionHeading>
+          <section
+            className="mt-10 rounded-[13px] border-2 border-ink bg-surface px-[12px] pb-3"
+            aria-label={t("series.fansTab")}
+          >
+            <div className="-mt-[14px] flex items-end justify-between">
+              <SectionHeading color="bg-primary text-white">
+                {t("series.fanPostsFor", { title })}
+              </SectionHeading>
               <Link
                 href={`/anime/${seriesSlug}/fans`}
-                className="text-[12.5px] font-medium text-gray hover:text-primary"
+                className="pb-1 font-heading text-[11px] font-extrabold uppercase text-ink hover:text-primary"
               >
-                {t("series.viewAllFans")} →
+                {t("series.viewAllFans")} <span aria-hidden="true">→</span>
               </Link>
             </div>
             {fanPosts.length === 0 ? (
@@ -162,7 +181,7 @@ export default async function SeriesPage({
                 {t("series.noFanPosts")}
               </p>
             ) : (
-              <div className="mt-4 grid gap-4 grid-cols-2 md:grid-cols-4">
+              <div className="mt-4 grid gap-4 grid-cols-2 pb-1 md:grid-cols-4">
                 {fanPosts.map((post) => (
                   <FanPostCard
                     key={post.id}
@@ -179,34 +198,40 @@ export default async function SeriesPage({
         {/* サイドバー: 基本情報 */}
         <aside>
           <section aria-label={t("series.infoTab")}>
-            <div className="border-t-2 border-ink pt-2.5">
-              <SectionHeading>{t("series.infoTab")}</SectionHeading>
-            </div>
-            <dl className="mt-3 space-y-3 text-sm">
+            <SectionHeading color="bg-yellow text-ink">
+              {t("series.infoTab")}
+            </SectionHeading>
+            <dl className="mt-3 rounded-[13px] border-2 border-ink bg-surface p-4 text-sm">
               {broadcast.season ? (
-                <div>
-                  <dt className="font-bold text-gray">{t("series.season")}</dt>
-                  <dd>{broadcast.season}</dd>
+                <div className="border-b border-dashed border-dash py-2.5 first:pt-0 last:border-b-0 last:pb-0">
+                  <dt className="font-heading text-[12px] font-extrabold uppercase text-gray">
+                    {t("series.season")}
+                  </dt>
+                  <dd className="mt-0.5">{broadcast.season}</dd>
                 </div>
               ) : null}
               {broadcast.broadcast ? (
-                <div>
-                  <dt className="font-bold text-gray">{t("series.broadcast")}</dt>
-                  <dd>{broadcast.broadcast}</dd>
+                <div className="border-b border-dashed border-dash py-2.5 first:pt-0 last:border-b-0 last:pb-0">
+                  <dt className="font-heading text-[12px] font-extrabold uppercase text-gray">
+                    {t("series.broadcast")}
+                  </dt>
+                  <dd className="mt-0.5">{broadcast.broadcast}</dd>
                 </div>
               ) : null}
               {broadcast.episodes ? (
-                <div>
-                  <dt className="font-bold text-gray">{t("series.episodes")}</dt>
-                  <dd>{broadcast.episodes}</dd>
+                <div className="border-b border-dashed border-dash py-2.5 first:pt-0 last:border-b-0 last:pb-0">
+                  <dt className="font-heading text-[12px] font-extrabold uppercase text-gray">
+                    {t("series.episodes")}
+                  </dt>
+                  <dd className="mt-0.5">{broadcast.episodes}</dd>
                 </div>
               ) : null}
               {links.official ? (
-                <div>
-                  <dt className="font-bold text-gray">
+                <div className="border-b border-dashed border-dash py-2.5 first:pt-0 last:border-b-0 last:pb-0">
+                  <dt className="font-heading text-[12px] font-extrabold uppercase text-gray">
                     {t("series.officialSite")}
                   </dt>
-                  <dd>
+                  <dd className="mt-0.5">
                     <a
                       href={links.official}
                       target="_blank"
@@ -219,9 +244,11 @@ export default async function SeriesPage({
                 </div>
               ) : null}
               {links.streaming?.length ? (
-                <div>
-                  <dt className="font-bold text-gray">{t("series.streaming")}</dt>
-                  <dd>
+                <div className="border-b border-dashed border-dash py-2.5 first:pt-0 last:border-b-0 last:pb-0">
+                  <dt className="font-heading text-[12px] font-extrabold uppercase text-gray">
+                    {t("series.streaming")}
+                  </dt>
+                  <dd className="mt-0.5">
                     <ul className="mt-0.5 space-y-0.5">
                       {links.streaming.map((s) => (
                         <li key={s.url}>

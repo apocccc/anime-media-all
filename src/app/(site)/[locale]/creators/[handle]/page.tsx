@@ -10,6 +10,7 @@ import {
 import { FanPostCard } from "@/components/site/FanPostCard";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { Pagination } from "@/components/site/Pagination";
+import { SectionHeading } from "@/components/site/SectionHeading";
 import { JsonLd } from "@/components/JsonLd";
 import { creatorJsonLd, staticAlternates } from "@/lib/seo";
 import { localizedUrl } from "@/lib/site";
@@ -75,56 +76,70 @@ export default async function CreatorPage({
         ]}
       />
 
-      <header className="mt-4 flex items-center gap-4 border-b border-line pb-6">
-        {creator.avatarUrl ? (
-          <Image
-            src={creator.avatarUrl}
-            alt={creator.name}
-            width={64}
-            height={64}
-            className="rounded-full"
-          />
-        ) : (
-          <div
-            aria-hidden="true"
-            className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-light text-xl font-black text-primary"
-          >
-            {creator.name.charAt(0)}
+      <header className="mt-4 rounded-[13px] border-2 border-ink bg-surface p-5">
+        <div className="flex items-center gap-4">
+          {creator.avatarUrl ? (
+            <Image
+              src={creator.avatarUrl}
+              alt={creator.name}
+              width={64}
+              height={64}
+              className="shrink-0 rounded-full border-2 border-ink"
+            />
+          ) : (
+            <div
+              aria-hidden="true"
+              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-ink bg-primary-light font-display text-xl text-primary"
+            >
+              {creator.name.charAt(0)}
+            </div>
+          )}
+          <div className="min-w-0">
+            <p>
+              <span className="inline-flex h-[18px] items-center rounded-[4px] bg-teal px-[7px] font-heading text-[10px] font-extrabold uppercase text-white">
+                {t("creators.creator")}
+              </span>
+            </p>
+            <h1 className="mt-1 font-heading text-[26px] font-extrabold leading-tight">
+              {creator.name}
+            </h1>
+            {creator.bio ? (
+              <p className="mt-1 text-sm leading-relaxed text-gray">
+                {creator.bio}
+              </p>
+            ) : null}
+            {Array.isArray(sns) && sns.length > 0 ? (
+              <ul className="mt-2.5 flex flex-wrap gap-2">
+                {sns.map((s) => (
+                  <li key={s.url}>
+                    <a
+                      href={s.url}
+                      target="_blank"
+                      rel="ugc nofollow noopener"
+                      className="inline-flex h-[24px] items-center rounded-[4px] border-2 border-ink bg-surface px-[9px] font-heading text-[11px] font-extrabold uppercase text-ink hover:bg-yellow"
+                    >
+                      {s.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
-        )}
-        <div>
-          <p className="text-xs font-bold text-primary">
-            {t("creators.creator")}
-          </p>
-          <h1 className="text-2xl font-black">{creator.name}</h1>
-          {creator.bio ? (
-            <p className="mt-1 text-sm text-gray">{creator.bio}</p>
-          ) : null}
-          {Array.isArray(sns) && sns.length > 0 ? (
-            <ul className="mt-1.5 flex flex-wrap gap-3 text-[13px]">
-              {sns.map((s) => (
-                <li key={s.url}>
-                  <a
-                    href={s.url}
-                    target="_blank"
-                    rel="ugc nofollow noopener"
-                    className="text-primary underline underline-offset-2"
-                  >
-                    {s.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : null}
         </div>
       </header>
 
-      <h2 className="mt-6 text-lg font-bold">
-        {t("creators.postsBy", { name: creator.name })}
-      </h2>
+      <div className="mt-8">
+        <SectionHeading>
+          {t("creators.postsBy", { name: creator.name })}
+        </SectionHeading>
+      </div>
 
       {items.length === 0 ? (
-        <p className="py-20 text-center text-gray">{t("labels.noArticles")}</p>
+        <div className="mt-5 rounded-[13px] border-2 border-ink bg-surface">
+          <p className="py-16 text-center font-semibold text-gray">
+            {t("labels.noArticles")}
+          </p>
+        </div>
       ) : (
         <div className="mt-5 grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {items.map((post) => (

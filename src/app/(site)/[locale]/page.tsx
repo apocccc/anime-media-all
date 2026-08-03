@@ -63,7 +63,7 @@ export default async function HomePage({
         <>
           {/* 上段: Hero / サイドカード / Most Read(§13) */}
           <div className="mt-[14px] grid gap-[14px] lg:grid-cols-[minmax(0,854fr)_minmax(240px,278fr)_minmax(340px,420fr)]">
-            <FeaturedHero article={hero} locale={locale} />
+            <FeaturedHero article={hero} />
             <div className="grid gap-[12px] sm:grid-cols-2 lg:grid-cols-1 lg:content-start">
               {sideStories.map((a) => (
                 <SideStoryCard key={a.id} article={a} locale={locale} />

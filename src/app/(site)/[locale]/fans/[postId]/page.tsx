@@ -12,6 +12,7 @@ import {
 } from "@/lib/data-community";
 import { auth } from "@/lib/auth";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
+import { fanTypeChip } from "@/components/site/FanPostCard";
 import { VoteButton } from "@/components/site/VoteButton";
 import { fromDbLocale, localeMeta, toDbLocale } from "@/lib/locale";
 import { formatTokyo, localizedUrl } from "@/lib/site";
@@ -73,18 +74,18 @@ export default async function FanPostPage({
 
       <article className="mt-4">
         <header className="flex flex-wrap items-center gap-2">
-          <span className="rounded-sm bg-primary-light px-2 py-0.5 text-xs font-bold text-primary-dark">
+          <span className={fanTypeChip(post.type)}>
             {t(`fans.types.${post.type}`)}
           </span>
           <Link
             href={`/anime/${post.series.slug}`}
-            className="text-sm font-bold text-primary hover:underline"
+            className="font-heading text-[15px] font-extrabold uppercase text-ink hover:text-primary"
           >
             {seriesTitle(post.series, db)}
           </Link>
         </header>
 
-        <div className="mt-3 flex items-center justify-between gap-3 border-y border-line py-2.5 text-[13px] text-gray">
+        <div className="mt-3 flex items-center justify-between gap-3 border-y border-dashed border-dash py-2.5 text-[13px] text-gray">
           <span>
             {t("fans.postedBy")}{" "}
             {post.author.handle ? (
@@ -108,7 +109,10 @@ export default async function FanPostPage({
         {media.length > 0 ? (
           <div className="mt-5 flex flex-col gap-4">
             {media.map((m) => (
-              <figure key={m.id} className="overflow-hidden rounded-lg">
+              <figure
+                key={m.id}
+                className="overflow-hidden rounded-[13px] border-2 border-ink"
+              >
                 <Image
                   src={m.url}
                   alt={m.alt}
@@ -127,7 +131,7 @@ export default async function FanPostPage({
               href={post.embedUrl}
               target="_blank"
               rel="ugc nofollow noopener"
-              className="inline-block rounded-md border border-line px-4 py-3 text-sm text-primary underline underline-offset-2 hover:border-primary"
+              className="inline-block break-all rounded-[8px] border-2 border-ink bg-surface px-4 py-3 text-sm font-semibold text-primary underline underline-offset-2 hover:bg-primary-light"
             >
               {post.embedProvider ? `${post.embedProvider}: ` : ""}
               {post.embedUrl}
@@ -150,8 +154,8 @@ export default async function FanPostPage({
 
         {/* 原文は常に併記(トグル)。翻訳は原文を置き換えない(§8.3) */}
         {showOriginalToggle ? (
-          <details className="mt-4 rounded-md border border-line bg-bg-sub px-4 py-2">
-            <summary className="cursor-pointer text-sm font-medium text-gray">
+          <details className="mt-4 rounded-[8px] border-2 border-ink bg-bg-sub px-4 py-2.5">
+            <summary className="cursor-pointer font-heading text-sm font-extrabold uppercase text-ink hover:text-primary">
               {t("fans.showOriginal")} ({fromDbLocale(post.originalLocale)})
             </summary>
             <p className="mt-2 whitespace-pre-wrap text-[14px] leading-relaxed text-ink">
@@ -160,7 +164,7 @@ export default async function FanPostPage({
           </details>
         ) : null}
 
-        <footer className="mt-6 flex items-center justify-between border-t border-line pt-4">
+        <footer className="mt-6 flex items-center justify-between border-t border-dashed border-dash pt-4">
           <VoteButton
             postId={post.id}
             initialVotes={post.voteCount}

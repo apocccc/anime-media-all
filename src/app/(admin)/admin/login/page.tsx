@@ -12,7 +12,7 @@ export default async function LoginPage() {
         <p className="text-center text-2xl font-black text-primary">
           環島新聞網
         </p>
-        <div className="mt-6 rounded-lg border border-line bg-bg p-6 shadow-sm">
+        <div className="mt-6 rounded-lg border border-line bg-bg p-6">
           <LoginForm />
         </div>
       </div>

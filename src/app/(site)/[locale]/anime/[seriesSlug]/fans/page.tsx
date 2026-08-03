@@ -76,8 +76,10 @@ export default async function SeriesFansPage({
           { name: t("series.fansTab"), path: `/anime/${seriesSlug}/fans` },
         ]}
       />
-      <h1 className="mt-4 text-2xl font-black">
-        <SectionHeading>{t("series.fanPostsFor", { title })}</SectionHeading>
+      <h1 className="mt-5">
+        <SectionHeading as="span" color="bg-primary text-white">
+          {t("series.fanPostsFor", { title })}
+        </SectionHeading>
       </h1>
 
       {items.length === 0 ? (

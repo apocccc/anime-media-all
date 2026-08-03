@@ -40,39 +40,53 @@ export default async function SearchPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <h1 className="text-2xl font-black">
-        <SectionHeading>
+      <h1>
+        <SectionHeading as="span">
           {query ? t("search.resultsFor", { query }) : t("search.title")}
         </SectionHeading>
       </h1>
 
-      <form action="" method="get" role="search" className="mt-5 flex max-w-md">
+      <form
+        action=""
+        method="get"
+        role="search"
+        className="mt-5 flex h-[46px] max-w-md items-center overflow-hidden rounded-[11px] border-2 border-ink bg-surface"
+      >
         <input
           type="search"
           name="q"
           defaultValue={query}
           placeholder={t("search.placeholder")}
-          className="flex-1 rounded-l-md border border-line bg-bg-sub px-4 py-2 text-sm outline-none focus:border-primary"
+          className="h-full min-w-0 flex-1 bg-transparent px-4 text-sm text-ink outline-none placeholder:text-[#a29fa9]"
         />
         <button
           type="submit"
-          className="rounded-r-md bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-primary-dark"
+          className="flex h-full shrink-0 items-center justify-center bg-primary px-5 font-heading text-[14px] font-extrabold uppercase text-white hover:bg-primary-dark"
         >
           {t("search.button")}
         </button>
       </form>
 
       {query && items.length === 0 ? (
-        <p className="py-20 text-center text-gray">
+        <p className="py-20 text-center font-semibold text-gray">
           {t("search.noResults", { query })}
         </p>
-      ) : (
-        <div className="mt-8 flex flex-col gap-7">
-          {items.map((a) => (
-            <ArticleCard key={a.id} article={a} locale={locale} />
+      ) : items.length > 0 ? (
+        <div className="mt-8 rounded-[13px] border-2 border-ink bg-surface p-4 sm:p-5">
+          {items.map((a, i) => (
+            <div
+              key={a.id}
+              className={
+                i < items.length - 1
+                  ? "mb-4 border-b border-dashed border-dash pb-4"
+                  : ""
+              }
+            >
+              <ArticleCard article={a} locale={locale} />
+            </div>
           ))}
         </div>
-      )}
+      ) : null}
 
       {query ? (
         <Pagination

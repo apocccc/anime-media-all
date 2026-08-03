@@ -9,6 +9,8 @@ import {
 import { ArticleCard } from "@/components/site/ArticleCard";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { Pagination } from "@/components/site/Pagination";
+import { SectionHeading } from "@/components/site/SectionHeading";
+import { categoryAccent } from "@/lib/category-style";
 import { staticAlternates } from "@/lib/seo";
 import { toDbLocale } from "@/lib/locale";
 import { localizedUrl } from "@/lib/site";
@@ -62,6 +64,7 @@ export default async function CompanyPage({
     page,
     PER_PAGE
   );
+  const accent = categoryAccent("press-release");
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
@@ -72,54 +75,82 @@ export default async function CompanyPage({
         ]}
       />
 
-      <header className="mt-4 flex items-center gap-4 border-b border-line pb-6">
-        {org.logoUrl ? (
-          <Image
-            src={org.logoUrl}
-            alt={org.name}
-            width={64}
-            height={64}
-            className="rounded-md"
-          />
-        ) : (
-          <div
-            aria-hidden="true"
-            className="flex h-16 w-16 items-center justify-center rounded-md bg-primary-light text-xl font-black text-primary"
-          >
-            {org.name.charAt(0)}
-          </div>
-        )}
-        <div>
-          <p className="text-xs font-bold text-gray">{t("press.companyPage")}</p>
-          <h1 className="text-2xl font-black">{org.name}</h1>
-          {org.description ? (
-            <p className="mt-1 text-sm text-gray">{org.description}</p>
-          ) : null}
-          {org.websiteUrl ? (
-            <p className="mt-1 text-[13px]">
-              <a
-                href={org.websiteUrl}
-                target="_blank"
-                rel="sponsored nofollow noopener"
-                className="text-primary underline underline-offset-2"
+      <header className="mt-4 rounded-[13px] border-2 border-ink bg-surface p-5">
+        <div className="flex items-center gap-4">
+          {org.logoUrl ? (
+            <Image
+              src={org.logoUrl}
+              alt={org.name}
+              width={64}
+              height={64}
+              className="shrink-0 rounded-[8px] border-2 border-ink bg-surface"
+            />
+          ) : (
+            <div
+              aria-hidden="true"
+              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[8px] border-2 border-ink bg-primary-light font-display text-xl text-primary"
+            >
+              {org.name.charAt(0)}
+            </div>
+          )}
+          <div className="min-w-0">
+            <p>
+              <span
+                className={`inline-flex h-[18px] items-center rounded-[4px] px-[7px] font-heading text-[10px] font-extrabold uppercase ${accent.chip}`}
               >
-                {t("press.website")}
-              </a>
+                {t("press.companyPage")}
+              </span>
             </p>
-          ) : null}
+            <h1 className="mt-1 font-heading text-[26px] font-extrabold leading-tight">
+              {org.name}
+            </h1>
+            {org.description ? (
+              <p className="mt-1 text-sm leading-relaxed text-gray">
+                {org.description}
+              </p>
+            ) : null}
+            {org.websiteUrl ? (
+              <p className="mt-2.5">
+                <a
+                  href={org.websiteUrl}
+                  target="_blank"
+                  rel="sponsored nofollow noopener"
+                  className="inline-flex h-[24px] items-center gap-1 rounded-[4px] border-2 border-ink bg-surface px-[9px] font-heading text-[11px] font-extrabold uppercase text-ink hover:bg-yellow"
+                >
+                  {t("press.website")}
+                  <span aria-hidden="true">→</span>
+                </a>
+              </p>
+            ) : null}
+          </div>
         </div>
       </header>
 
-      <h2 className="mt-6 text-lg font-bold">
-        {t("press.pressReleasesBy", { name: org.name })}
-      </h2>
+      <div className="mt-8">
+        <SectionHeading color="bg-navy text-white">
+          {t("press.pressReleasesBy", { name: org.name })}
+        </SectionHeading>
+      </div>
 
       {items.length === 0 ? (
-        <p className="py-20 text-center text-gray">{t("labels.noArticles")}</p>
+        <div className="mt-5 rounded-[13px] border-2 border-ink bg-surface">
+          <p className="py-16 text-center font-semibold text-gray">
+            {t("labels.noArticles")}
+          </p>
+        </div>
       ) : (
-        <div className="mt-5 flex flex-col gap-7">
-          {items.map((a) => (
-            <ArticleCard key={a.id} article={a} locale={locale} />
+        <div className="mt-5 rounded-[13px] border-2 border-ink bg-surface p-4 sm:p-5">
+          {items.map((a, i) => (
+            <div
+              key={a.id}
+              className={
+                i < items.length - 1
+                  ? "mb-4 border-b border-dashed border-dash pb-4"
+                  : ""
+              }
+            >
+              <ArticleCard article={a} locale={locale} />
+            </div>
           ))}
         </div>
       )}

@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { Pagination } from "@/components/site/Pagination";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { categoryName } from "@/lib/categories";
+import { categoryAccent } from "@/lib/category-style";
 import { staticAlternates } from "@/lib/seo";
 import { toDbLocale } from "@/lib/locale";
 import { localizedUrl } from "@/lib/site";
@@ -63,6 +64,7 @@ export default async function CategoryPage({
     PER_PAGE
   );
   const name = categoryName(category, locale);
+  const accent = categoryAccent(slug);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
@@ -72,26 +74,40 @@ export default async function CategoryPage({
           { name, path: `/category/${slug}` },
         ]}
       />
-      <div className="mt-4 flex items-baseline justify-between">
-        <h1 className="text-2xl font-black">
-          <SectionHeading>{name}</SectionHeading>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <h1>
+          <SectionHeading as="span" color={accent.chip}>
+            {name}
+          </SectionHeading>
         </h1>
-        <p className="text-sm text-gray">
+        <p className="inline-flex h-[24px] items-center rounded-[4px] bg-yellow px-[10px] font-heading text-[12px] font-extrabold uppercase text-ink">
           {t("labels.articleCount", { count: total })}
         </p>
       </div>
 
       {items.length === 0 ? (
-        <p className="py-20 text-center text-gray">{t("labels.noArticles")}</p>
+        <div className="mt-6 rounded-[13px] border-2 border-ink bg-surface p-5">
+          <p className="py-16 text-center font-semibold text-gray">
+            {t("labels.noArticles")}
+          </p>
+        </div>
       ) : (
-        <div className="mt-6 flex flex-col gap-7">
-          {items.map((a) => (
-            <ArticleCard
+        <div className="mt-6 rounded-[13px] border-2 border-ink bg-surface p-4 sm:p-5">
+          {items.map((a, i) => (
+            <div
               key={a.id}
-              article={a}
-              locale={locale}
-              showCategory={slug === "latest"}
-            />
+              className={
+                i < items.length - 1
+                  ? "mb-4 border-b border-dashed border-dash pb-4"
+                  : ""
+              }
+            >
+              <ArticleCard
+                article={a}
+                locale={locale}
+                showCategory={slug === "latest"}
+              />
+            </div>
           ))}
         </div>
       )}

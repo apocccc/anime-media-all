@@ -243,12 +243,6 @@ export default async function ArticlePage({
                 </p>
               ) : null}
 
-              {tr.lead ? (
-                <p className="mt-5 rounded-r-[8px] border-l-4 border-primary bg-primary-light px-4 py-3 text-[16px] font-medium leading-relaxed text-ink">
-                  {tr.lead}
-                </p>
-              ) : null}
-
               {article.heroImage ? (
                 <figure className="mt-5">
                   <div className="relative aspect-[16/9] overflow-hidden rounded-[13px] border-2 border-ink">

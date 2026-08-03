@@ -634,6 +634,32 @@ async function main() {
         },
       },
     });
+
+    // SNS埋め込み投稿(Facebook)。実際の投稿URLをはめ込んで表示確認する
+    await prisma.fanPost.create({
+      data: {
+        authorId: member.id,
+        seriesId: frieren.id,
+        type: "embed",
+        status: "approved",
+        bodyOriginal:
+          "Sharing this amazing fan edit from Facebook! The animation flows so well 😭✨",
+        originalLocale: "en",
+        embedUrl: "https://fb.watch/IMrFqu19sl/",
+        embedProvider: "Facebook",
+        publishedAt: hoursAgo(2),
+        voteCount: 5,
+        score: 5,
+        translations: {
+          create: [
+            { locale: "ko", body: "페이스북에서 발견한 멋진 팬 편집 영상 공유합니다! 작화가 정말 부드러워요 😭✨", translatedBy: "ai" },
+            { locale: "zh_Hant", body: "分享一段在 Facebook 上看到的超棒粉絲剪輯!作畫流暢到不行 😭✨", translatedBy: "ai" },
+            { locale: "th", body: "แชร์คลิปแฟนตัดต่อสุดเจ๋งจาก Facebook! งานภาพลื่นไหลมาก 😭✨", translatedBy: "ai" },
+            { locale: "zh_Hans", body: "分享一段在 Facebook 上看到的超棒粉丝剪辑!作画流畅到不行 😭✨", translatedBy: "ai" },
+          ],
+        },
+      },
+    });
   }
 
   console.log("Seeding reward catalog...");

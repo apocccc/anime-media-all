@@ -48,6 +48,22 @@ export async function FanPostCard({
               className="object-cover"
             />
           </div>
+        ) : post.type === "embed" ? (
+          <div className="relative flex aspect-[4/3] flex-col items-center justify-center gap-2 overflow-hidden rounded-[8px] border-2 border-ink bg-navy px-4 text-center">
+            <span
+              aria-hidden="true"
+              className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-white"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5 v14 l11 -7 Z" />
+              </svg>
+            </span>
+            {post.embedProvider ? (
+              <span className="font-heading text-[13px] font-extrabold uppercase text-white">
+                {post.embedProvider}
+              </span>
+            ) : null}
+          </div>
         ) : (
           <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[8px] border-2 border-ink bg-bg-sub px-4">
             <p className="line-clamp-5 text-sm text-gray">{body}</p>

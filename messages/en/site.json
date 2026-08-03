@@ -97,7 +97,8 @@
       "photo": "Photo",
       "text": "Text",
       "embed": "Embed"
-    }
+    },
+    "viewOriginalPost": "View original post"
   },
   "prize": {
     "title": "Weekly Prize",

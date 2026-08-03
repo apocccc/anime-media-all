@@ -33,6 +33,9 @@ const EMBED_HOSTS: Record<string, string> = {
   "www.tiktok.com": "TikTok",
   "www.youtube.com": "YouTube",
   "youtu.be": "YouTube",
+  "www.facebook.com": "Facebook",
+  "facebook.com": "Facebook",
+  "fb.watch": "Facebook",
 };
 
 /**

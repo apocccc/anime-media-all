@@ -97,7 +97,8 @@
       "photo": "사진",
       "text": "텍스트",
       "embed": "임베드"
-    }
+    },
+    "viewOriginalPost": "원본 게시물 보기"
   },
   "prize": {
     "title": "주간 프라이즈",

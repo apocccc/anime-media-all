@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { categoryName, type CategoryWithTranslations } from "@/lib/categories";
@@ -109,17 +108,6 @@ export async function SiteHeader({
           buttonLabel={t("search.button")}
         />
         <LanguageSwitcher />
-
-        {/* TODO: 正式な右上マスコット素材に差し替える。82 × 78 pxの表示領域は維持すること。 */}
-        <div className="hidden h-[78px] w-[82px] shrink-0 lg:block">
-          <Image
-            src="/assets/temp/mascot-placeholder.svg"
-            alt=""
-            width={82}
-            height={78}
-            className="h-full w-full object-contain"
-          />
-        </div>
       </div>
     </header>
   );

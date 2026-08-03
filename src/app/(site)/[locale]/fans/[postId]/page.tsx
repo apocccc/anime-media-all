@@ -12,6 +12,7 @@ import {
 } from "@/lib/data-community";
 import { auth } from "@/lib/auth";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
+import { EmbedRenderer } from "@/components/site/EmbedRenderer";
 import { fanTypeChip } from "@/components/site/FanPostCard";
 import { VoteButton } from "@/components/site/VoteButton";
 import { fromDbLocale, localeMeta, toDbLocale } from "@/lib/locale";
@@ -126,17 +127,11 @@ export default async function FanPostPage({
         ) : null}
 
         {post.embedUrl ? (
-          <p className="mt-5">
-            <a
-              href={post.embedUrl}
-              target="_blank"
-              rel="ugc nofollow noopener"
-              className="inline-block break-all rounded-[8px] border-2 border-ink bg-surface px-4 py-3 text-sm font-semibold text-primary underline underline-offset-2 hover:bg-primary-light"
-            >
-              {post.embedProvider ? `${post.embedProvider}: ` : ""}
-              {post.embedUrl}
-            </a>
-          </p>
+          <EmbedRenderer
+            url={post.embedUrl}
+            provider={post.embedProvider}
+            viewOnLabel={t("fans.viewOriginalPost")}
+          />
         ) : null}
 
         {body ? (

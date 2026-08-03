@@ -97,7 +97,8 @@
       "photo": "照片",
       "text": "文字",
       "embed": "嵌入"
-    }
+    },
+    "viewOriginalPost": "查看原始貼文"
   },
   "prize": {
     "title": "每週獎賞",

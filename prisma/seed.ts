@@ -439,6 +439,25 @@ async function main() {
     }
   }
 
+  console.log("Seeding RSS feeds...");
+  // プレスリリース源: apocwire.com のアニメカテゴリー(§7 掲載方法1)。
+  // isPressRelease=true のフィードは press-release カテゴリーへ原文転載(即時公開)し、
+  // 別途 AI 記事化ジョブが独自記事を生成して適切なカテゴリーへ振り分ける。
+  await prisma.rssFeed.upsert({
+    where: { url: "https://apocwire.com/category/anime/feed/" },
+    update: { isPressRelease: true, categoryId: categoryBySlug.get("press-release")! },
+    create: {
+      name: "apocwire (アニメ)",
+      url: "https://apocwire.com/category/anime/feed/",
+      categoryId: categoryBySlug.get("press-release")!,
+      isPressRelease: true,
+      autoPublish: true,
+      isEnabled: true,
+      fetchIntervalMinutes: 30,
+      fetchLimit: 10,
+    },
+  });
+
   console.log("Seeding users...");
   const admin = await prisma.user.upsert({
     where: { email: "admin@example.com" },

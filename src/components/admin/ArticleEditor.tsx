@@ -25,6 +25,7 @@ import {
   deleteArticleAction,
   excludeTranslationAction,
   queueTranslationsAction,
+  rejectPressReleaseAction,
   restoreRevisionAction,
   retranslateAction,
   saveArticleAction,
@@ -381,6 +382,22 @@ export function ArticleEditor({
               className="rounded border border-line bg-bg px-3 py-1.5 text-sm font-medium hover:border-primary hover:text-primary"
             >
               {t("unpublish")}
+            </button>
+          ) : null}
+          {article.kind === "press_release" && status !== "archived" && canPublish ? (
+            <button
+              type="button"
+              disabled={pendingStatus}
+              onClick={() =>
+                startStatusTransition(async () => {
+                  if (!confirm(t("rejectPrConfirm"))) return;
+                  await rejectPressReleaseAction(article.id);
+                  setStatus("archived");
+                })
+              }
+              className="rounded border border-red-300 bg-red-50 px-3 py-1.5 text-sm font-bold text-red-700 hover:bg-red-100 disabled:opacity-50"
+            >
+              {t("rejectPr")}
             </button>
           ) : null}
           {status === "archived" && canPublish ? (

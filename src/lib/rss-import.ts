@@ -7,6 +7,8 @@ import { bodyExtensions, extractText, linkifyDoc } from "@/lib/tiptap";
 import { storeRemoteImage } from "@/lib/media-store";
 import { dateStamp } from "@/lib/slug";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { queueArticleTranslations } from "@/lib/translate";
+import { enqueueJob } from "@/lib/jobs";
 import type { RssFeed } from "@prisma/client";
 
 /**
@@ -264,12 +266,16 @@ export async function importFeed(
       // 生成段階で英語ベースのスラッグへ差し替えられる(公開後は変更不可)
       const slug = `${dateStamp(publishedAt)}-${hash8(guid)}`;
 
+      // プレスリリース源(apocwire等)は press-release カテゴリーへ原文転載し即時公開。
+      // 通常フィードは draft のまま generate cron が日本語マスター記事化する(§6.3)。
+      const isPR = feed.isPressRelease;
       const article = await prisma.article.create({
         data: {
           slug,
-          status: "draft",
-          kind: "ai_generated",
+          status: isPR ? "published" : "draft",
+          kind: isPR ? "press_release" : "ai_generated",
           masterLocale: "ja",
+          publishedAt: isPR ? new Date() : null,
           categoryId: feed.categoryId,
           authorId: importUser.id,
           heroImageId: hero?.id ?? null,
@@ -281,7 +287,9 @@ export async function importFeed(
               title,
               lead: firstParagraphText(item.contentSnippet ?? rawHtml, title),
               body: body as object,
-              status: "pending",
+              // 原文転載はそのまま確定(approved)。翻訳ジョブで公開ロケールへ展開する
+              status: isPR ? "approved" : "pending",
+              translatedBy: isPR ? "human" : undefined,
             },
           },
           sources: {
@@ -294,6 +302,16 @@ export async function importFeed(
           },
         },
       });
+
+      // 原文PRを公開ロケールへ翻訳 + 独自AI記事化(適切なカテゴリーへ振り分け)
+      if (isPR) {
+        await queueArticleTranslations(article.id);
+        await enqueueJob(
+          "articleify_press_release",
+          { articleId: article.id },
+          `articleify:${article.id}`
+        );
+      }
 
       result.imported++;
       result.articleIds.push(article.id);

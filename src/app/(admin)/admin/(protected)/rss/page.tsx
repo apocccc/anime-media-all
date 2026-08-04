@@ -122,6 +122,14 @@ export default async function RssFeedsPage() {
                   />
                   {t("autoPublish")}
                 </label>
+                <label className="flex items-center gap-1.5" title={t("isPressReleaseHint")}>
+                  <input
+                    type="checkbox"
+                    name="isPressRelease"
+                    defaultChecked={feed.isPressRelease}
+                  />
+                  {t("isPressRelease")}
+                </label>
                 <label className="flex items-center gap-1.5">
                   <input
                     type="checkbox"
@@ -235,6 +243,10 @@ export default async function RssFeedsPage() {
         <label className="flex items-center gap-1.5" title={t("autoPublishHint")}>
           <input type="checkbox" name="autoPublish" defaultChecked />
           {t("autoPublish")}
+        </label>
+        <label className="flex items-center gap-1.5" title={t("isPressReleaseHint")}>
+          <input type="checkbox" name="isPressRelease" />
+          {t("isPressRelease")}
         </label>
         <label className="flex items-center gap-1.5">
           <input type="checkbox" name="isEnabled" defaultChecked />

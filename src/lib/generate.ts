@@ -3,7 +3,9 @@ import type { JSONContent } from "@tiptap/core";
 import { aiCompleteJson, aiConfigured, modelForRole } from "@/lib/ai/provider";
 import { buildRewrittenBody, extractSource, fetchPageText } from "@/lib/rewrite";
 import { queueArticleTranslations } from "@/lib/translate";
-import { articleSlug } from "@/lib/slug";
+import { articleSlug, slugify } from "@/lib/slug";
+import { hash8 } from "@/lib/rss-import";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * 日本語マスター記事の生成(§6.3)。
@@ -218,6 +220,145 @@ export async function generateMasterArticles(
   }
 
   return summary;
+}
+
+/**
+ * プレスリリース → 独自AI記事化(§7 + 2026-08 指示)。
+ * press-release カテゴリーに原文転載された press_release 記事を素材に、
+ * 「日本のアニメ業界に詳しいニュース編集者」ペルソナで独自記事へ再構成し、
+ * 適切なカテゴリー(news/anime/manga/event 等)へ振り分けて公開キューへ載せる。
+ * - 原文PR(press_release)はそのまま残す(原文アーカイブ)
+ * - 生成物は kind: ai_generated の別記事(derivedFrom=元PR)。翻訳は5言語へ。
+ * - 一次情報(配信元企業・原文URL)を出典として明記する
+ */
+export async function articleifyPressRelease(
+  prArticleId: string,
+  now = new Date()
+): Promise<{ ok: boolean; reason?: string; articleId?: string }> {
+  if (!aiConfigured()) return { ok: false, reason: "ai_not_configured" };
+
+  const pr = await prisma.article.findUnique({
+    where: { id: prArticleId },
+    include: {
+      organization: true,
+      sources: true,
+      translations: true,
+      derivatives: { select: { id: true } },
+    },
+  });
+  if (!pr || pr.kind !== "press_release") return { ok: false, reason: "not_press_release" };
+  // 二重生成防止(既に派生記事がある)
+  if (pr.derivatives.length > 0) return { ok: false, reason: "already_articleified" };
+
+  const master =
+    pr.translations.find((t) => t.locale === pr.masterLocale) ??
+    pr.translations.find((t) => t.status !== "excluded");
+  if (!master) return { ok: false, reason: "no_master" };
+
+  const { text, images } = extractSource(master.body as JSONContent);
+
+  const categories = await prisma.category.findMany({
+    where: { isVisible: true, slug: { notIn: ["latest", "press-release", "fan"] } },
+    orderBy: { order: "asc" },
+    include: { translations: true },
+  });
+  if (categories.length === 0) return { ok: false, reason: "no_target_category" };
+  const categoryChoices = categories.map((c) => ({
+    slug: c.slug,
+    name: c.translations.find((t) => t.locale === "ja")?.name ?? c.slug,
+  }));
+
+  const system = [
+    "あなたは日本のアニメ業界に詳しいニュース編集者です。",
+    "任務: 提供されたプレスリリースをもとに、日本語のマスター原稿(独自記事)を書く。この原稿は後段で5言語へ翻訳される。",
+    "規則:",
+    "1. 事実・数字・固有名詞・日付の捏造禁止。プレスリリースに無い情報は書かない。",
+    "2. プレスリリースの逐語コピー・宣伝的表現の丸写しをしない。ニュースとして中立的に再構成する。",
+    "3. 分量: 日本語800〜1,600字。小見出し(「## 」で始まる独立段落)を1〜3個。リード文は160字目安。",
+    "4. 原文中の [IMAGE_n] マーカーは位置・順序を変えず必ず保持する(独立段落として)。",
+    '5. 出力JSON: {"title": "見出し", "lead": "リード文", "paragraphs": ["段落", "## 小見出し", "[IMAGE_1]", ...], "slugBase": "english-short-slug", "seriesNames": ["作品名"], "category": "slug"}',
+    `6. category は次から内容に最も合う1つを選ぶ(press-release は選べない): ${categoryChoices.map((c) => `${c.slug}(${c.name})`).join("、")}`,
+  ].join("\n");
+
+  const user = [
+    `配信元企業: ${pr.organization?.name ?? master.title}`,
+    `原語: ${pr.masterLocale}`,
+    `プレスリリース見出し: ${master.title}`,
+    `プレスリリース リード: ${master.lead}`,
+    "",
+    `プレスリリース本文:\n${text}`,
+  ].join("\n");
+
+  const output = await aiCompleteJson<GenerateOutput>({ role: "write", system, user });
+  if (!output.title || !Array.isArray(output.paragraphs) || output.paragraphs.length === 0) {
+    return { ok: false, reason: "bad_ai_output" };
+  }
+
+  const body = buildRewrittenBody(output.paragraphs, images);
+  const target = categories.find((c) => c.slug === output.category) ?? categories[0];
+  const publishAt = computeReleaseTime(now);
+
+  // スラッグ(英語ベース)。衝突時は articleSlug 内のフォールバックに委ねる
+  let slug = articleSlug(output.slugBase || slugify(output.title) || "press", now);
+  if (await prisma.article.findFirst({ where: { slug }, select: { id: true } })) {
+    slug = articleSlug(`${output.slugBase || "press"}-${hash8(pr.id)}`, now);
+  }
+
+  // 出典: 原文PR(配信元企業)+ 元URL があれば併記
+  const primarySource = pr.sources.find((s) => s.isPrimary) ?? pr.sources[0];
+  const created = await prisma.article.create({
+    data: {
+      slug,
+      status: "scheduled",
+      kind: "ai_generated",
+      masterLocale: "ja",
+      publishAt,
+      categoryId: target.id,
+      authorId: pr.authorId,
+      heroImageId: pr.heroImageId,
+      derivedFromId: pr.id,
+      organizationId: pr.organizationId,
+      translations: {
+        create: {
+          locale: "ja",
+          title: output.title,
+          lead: (output.lead ?? "").slice(0, 300),
+          body: body as object,
+          status: "approved",
+          translatedBy: "ai",
+          model: modelForRole("write"),
+        },
+      },
+      sources: {
+        create: {
+          name: pr.organization?.name ?? primarySource?.name ?? "Press Release",
+          url: primarySource?.url ?? pr.organization?.websiteUrl ?? SITE_URL,
+          publishedAt: pr.publishedAt ?? pr.createdAt,
+          isPrimary: true,
+        },
+      },
+    },
+  });
+
+  // 作品(Series)紐付け
+  for (const name of output.seriesNames ?? []) {
+    const series = await prisma.series.findFirst({
+      where: { OR: [{ titleJa: name }, { translations: { some: { title: name } } }] },
+      select: { id: true },
+    });
+    if (series) {
+      await prisma.articleSeries.upsert({
+        where: { articleId_seriesId: { articleId: created.id, seriesId: series.id } },
+        create: { articleId: created.id, seriesId: series.id, isPrimary: false },
+        update: {},
+      });
+    }
+  }
+
+  // 固有名詞分析 → 翻訳(準備ジョブ経由)
+  await queueArticleTranslations(created.id);
+
+  return { ok: true, articleId: created.id };
 }
 
 /** JSTの現在日を返す(表示・ログ用) */

@@ -23,6 +23,8 @@ const feedSchema = z.object({
   url: z.string().url().max(500),
   categoryId: z.string().min(1),
   autoPublish: z.boolean(),
+  // プレスリリース源: press-release へ原文転載(即時公開)+ 独自AI記事化
+  isPressRelease: z.boolean(),
   fetchLimit: z.coerce.number().int().min(1).max(30),
   fetchIntervalMinutes: z.coerce
     .number()
@@ -37,6 +39,7 @@ export async function createFeedAction(formData: FormData) {
     url: formData.get("url"),
     categoryId: formData.get("categoryId"),
     autoPublish: formData.get("autoPublish") === "on",
+    isPressRelease: formData.get("isPressRelease") === "on",
     fetchLimit: formData.get("fetchLimit") || 10,
     fetchIntervalMinutes: formData.get("fetchIntervalMinutes") || 60,
   });
@@ -56,6 +59,7 @@ export async function updateFeedAction(formData: FormData) {
       name: formData.get("name"),
       categoryId: formData.get("categoryId"),
       autoPublish: formData.get("autoPublish") === "on",
+      isPressRelease: formData.get("isPressRelease") === "on",
       isEnabled: formData.get("isEnabled") === "on",
       fetchLimit: formData.get("fetchLimit") || 10,
       fetchIntervalMinutes: formData.get("fetchIntervalMinutes") || 60,

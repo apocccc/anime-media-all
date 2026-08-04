@@ -227,6 +227,12 @@ model Article {
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   pressContact   String?
 
+  // プレスリリースからAI記事化した派生記事の親(press_release → ai_generated)。
+  // 親PRを却下(archived)したら派生記事も一括で archived にできるよう関連を保持する
+  derivedFromId String?
+  derivedFrom   Article?  @relation("PressArticleify", fields: [derivedFromId], references: [id], onDelete: SetNull)
+  derivatives   Article[] @relation("PressArticleify")
+
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
   authorId    String
@@ -350,6 +356,10 @@ model RssFeed {
   category          Category  @relation(fields: [categoryId], references: [id])
   // 既定はオフ: 編集者承認なしに翻訳・公開へ進めない(§6.3)
   autoPublish       Boolean   @default(false)
+  // プレスリリース源(例: apocwire アニメカテゴリー)。true の場合、
+  // 取り込み記事は press-release カテゴリーへ原文転載(即時公開)し、
+  // 別途 AI 記事化ジョブが独自記事を生成して適切なカテゴリーへ振り分ける
+  isPressRelease    Boolean   @default(false)
   isEnabled         Boolean   @default(true)
   fetchIntervalMinutes Int    @default(60)
   fetchLimit        Int       @default(10)

@@ -14,7 +14,8 @@ export type JobType =
   | "translate_fan_post" // payload: { postId }
   | "moderate_fan_post" // payload: { postId }
   | "retranslate_term" // payload: { termId } 用語表記変更の波及再翻訳
-  | "glossary_extract"; // payload: { articleId } 固有名詞抽出
+  | "glossary_extract" // payload: { articleId } 翻訳準備(固有名詞分析→翻訳fan-out)
+  | "articleify_press_release"; // payload: { articleId } PR原文→独自AI記事化
 
 export async function enqueueJob(
   type: JobType,

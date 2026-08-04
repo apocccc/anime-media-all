@@ -299,6 +299,31 @@ export async function changeStatusAction(
   return { ok: true, status: updated.status };
 }
 
+/**
+ * プレスリリースの事後却下(2026-08 指示: 申請は即時公開 → 不適切なものを後から却下)。
+ * 原文PR(press_release)と、そこから派生したAI記事(derivatives)をまとめて archived にする。
+ */
+export async function rejectPressReleaseAction(articleId: string) {
+  const { user, article } = await requireArticleAccess(articleId);
+  if (!canPublish(user)) throw new Error("Forbidden");
+
+  const targets = await prisma.article.findMany({
+    where: { OR: [{ id: articleId }, { derivedFromId: articleId }] },
+    include: { category: true },
+  });
+  for (const t of targets) {
+    await prisma.article.update({
+      where: { id: t.id },
+      data: { status: "archived", publishAt: null },
+    });
+    revalidateArticle(t.category.slug, t.slug);
+  }
+
+  revalidateArticle(article.category.slug, article.slug);
+  revalidatePath("/admin/articles");
+  return { ok: true, archived: targets.length };
+}
+
 /** 翻訳キュー投入(マスター確定後に全公開ロケールへ) */
 export async function queueTranslationsAction(articleId: string) {
   await requireArticleAccess(articleId);

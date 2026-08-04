@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { articleSlug, slugify } from "@/lib/slug";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { queueArticleTranslations } from "@/lib/translate";
+import { enqueueJob } from "@/lib/jobs";
 import { PUBLIC_DB_LOCALES } from "@/lib/locale";
 import type { Locale as DbLocale } from "@prisma/client";
 
@@ -198,10 +199,11 @@ export async function submitPressReleaseAction(
   const article = await prisma.article.create({
     data: {
       slug,
-      // 承認フロー: submitted(review)→ scheduled/published。信頼済みは即時
-      status: org.autoApprove ? (embargoAt ? "scheduled" : "published") : "review",
+      // 申請は全て即時公開(2026-08 指示)。解禁日時があれば scheduled。
+      // 不適切なものは管理画面から事後却下(archived)する。
+      status: embargoAt ? "scheduled" : "published",
       publishAt: embargoAt,
-      publishedAt: org.autoApprove && !embargoAt ? new Date() : null,
+      publishedAt: embargoAt ? null : new Date(),
       kind: "press_release",
       masterLocale: parsed.originalLocale,
       organizationId: org.id,
@@ -243,6 +245,13 @@ export async function submitPressReleaseAction(
   if (parsed.translationMode !== "none") {
     await queueArticleTranslations(article.id);
   }
+
+  // 原文PRを素材に独自AI記事化 → 適切なカテゴリーへ振り分けて公開(§7 + 2026-08 指示)
+  await enqueueJob(
+    "articleify_press_release",
+    { articleId: article.id },
+    `articleify:${article.id}`
+  );
 
   revalidatePath("/partner");
   return { error: null, ok: true };

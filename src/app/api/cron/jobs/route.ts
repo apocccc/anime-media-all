@@ -7,6 +7,7 @@ import {
   queueArticleTranslations,
   prepareAndQueueTranslations,
 } from "@/lib/translate";
+import { articleifyPressRelease } from "@/lib/generate";
 import { aiScreenFanPost, translateFanPost } from "@/lib/moderation";
 import { revalidateArticle } from "@/lib/revalidate";
 import { isAuthorizedCron } from "@/lib/cron-auth";
@@ -51,6 +52,12 @@ export async function GET(req: Request) {
     glossary_extract: async (job) => {
       const { articleId } = job.payload as { articleId: string };
       await prepareAndQueueTranslations(articleId);
+    },
+    // プレスリリース → 独自AI記事化(§7 + 2026-08 指示):
+    // 原文PRを素材に独自記事を生成し、適切なカテゴリーへ振り分けて公開キューへ載せる。
+    articleify_press_release: async (job) => {
+      const { articleId } = job.payload as { articleId: string };
+      await articleifyPressRelease(articleId);
     },
     // 用語表記変更の波及: その用語を含む公開済み記事を一括再翻訳キューへ(§5.3)
     retranslate_term: async (job) => {

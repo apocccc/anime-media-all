@@ -1,6 +1,6 @@
 # アニメメディア 本番デプロイ手順
 
-CLAUDE.md §11 準拠。インフラは huandaonews と同一構成に、アニメメディア固有の
+CLAUDE.md §11 準拠。インフラ構成に、アニメメディア固有の
 サービス(AI翻訳=OpenAI・スパム対策=Turnstile・会員OAuth・IndexNow)を上乗せする。
 
 | サービス | 役割 | 必須 |

@@ -141,7 +141,7 @@ export async function ArticleCard({
             {tr.title}
           </h3>
           {tr.lead ? (
-            <p className="mt-1 hidden sm:block line-clamp-2 text-sm leading-relaxed text-gray">
+            <p className="mt-1 hidden sm:line-clamp-2 text-sm leading-relaxed text-gray">
               {tr.lead}
             </p>
           ) : null}

@@ -79,7 +79,7 @@ export async function CategoryPanel({
               <div className="min-w-0">
                 <Link
                   href={articlePath(article.category.slug, article.slug)}
-                  className="block font-heading text-[14.5px] font-extrabold leading-[1.12] text-ink line-clamp-2 hover:text-primary"
+                  className="font-heading text-[14.5px] font-extrabold leading-[1.12] text-ink line-clamp-2 hover:text-primary"
                 >
                   {tr.title}
                 </Link>

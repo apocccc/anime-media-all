@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { SectionHeading } from "@/components/site/SectionHeading";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 export async function generateMetadata({
   params,
@@ -31,10 +32,10 @@ export default async function ContactPage({
         <p className="mt-4 border-t border-dashed border-dash pt-4 text-[17px] text-ink">
           {t("email")}:{" "}
           <a
-            href="mailto:contact@huandaonews.com"
+            href={`mailto:${CONTACT_EMAIL}`}
             className="font-semibold text-primary underline underline-offset-4 hover:text-primary-dark"
           >
-            contact@huandaonews.com
+            {CONTACT_EMAIL}
           </a>
         </p>
       </div>

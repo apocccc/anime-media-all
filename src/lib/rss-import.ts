@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { bodyExtensions, extractText, linkifyDoc } from "@/lib/tiptap";
 import { storeRemoteImage } from "@/lib/media-store";
 import { dateStamp } from "@/lib/slug";
-import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { BOT_UA } from "@/lib/site";
 import { queueArticleTranslations } from "@/lib/translate";
 import { enqueueJob } from "@/lib/jobs";
 import type { RssFeed } from "@prisma/client";
@@ -21,8 +21,6 @@ import type { RssFeed } from "@prisma/client";
 
 const MAX_ITEMS_PER_FETCH = 30;
 const MAX_INLINE_IMAGES = 10;
-
-const BOT_UA = `${SITE_NAME.replace(/\s+/g, "")}Bot/1.0 (+${SITE_URL}/about)`;
 
 type FeedItem = {
   title?: string;

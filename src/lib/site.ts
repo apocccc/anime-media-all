@@ -6,9 +6,26 @@ export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
 ).replace(/\/$/, "");
 
-export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "Anime Media";
+export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "Anime Relay";
 
 export const TOKYO_TZ = "Asia/Tokyo";
+
+/** サイトのホスト名(例: animerelay.com)。SITE_URL から導出しハードコードしない */
+export const SITE_HOST = (() => {
+  try {
+    return new URL(SITE_URL).host.replace(/^www\./, "");
+  } catch {
+    return "localhost:3000";
+  }
+})();
+
+/** 問い合わせ先メール。未設定時は contact@<domain> */
+export const CONTACT_EMAIL =
+  process.env.NEXT_PUBLIC_CONTACT_EMAIL ??
+  `contact@${SITE_HOST.replace(/:\d+$/, "")}`;
+
+/** 収集ボットのUA(§6.1: robots.txt 尊重・UA明示)。SITE_NAME/SITE_URL から生成 */
+export const BOT_UA = `${SITE_NAME.replace(/\s+/g, "")}Bot/1.0 (+${SITE_URL}/about)`;
 
 /** 絶対URLを生成する。path は必ず / 始まり */
 export function absoluteUrl(path: string): string {

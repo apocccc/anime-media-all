@@ -8,12 +8,12 @@ CLAUDE.md §11 準拠。インフラは huandaonews と同一構成に、アニ�
 | **Supabase** | マネージド Postgres としてのみ使用(Data API OFF) | ◎ |
 | **Vercel** | ホスティング / ISR / Cron(**Proプラン**=分単位cron) | ◎ |
 | **Cloudflare** | DNS ゾーン管理 + R2(画像)+ Turnstile(スパム対策) | ◎ |
-| **Cloudflare R2** | 公開画像 `img.{{DOMAIN}}` カスタムドメイン配信 | ◎ |
+| **Cloudflare R2** | 公開画像 `img.animerelay.com` カスタムドメイン配信 | ◎ |
 | **OpenAI** | 記事生成・翻訳・モデレーション・固有名詞抽出 | ◎ |
 | **Resend** | 会員登録確認・受賞通知・PR承認通知メール | ○ |
 | **会員OAuth** | Google / Discord / X ログイン | ○(後追い可) |
 
-> 別途指示待ち: `{{SITE_NAME}}` / `{{DOMAIN}}` / `{{PROJECT_SLUG}}` / `{{BRAND_COLOR}}` / `{{LOGO}}`
+> 別途指示待ち: `Anime Relay` / `animerelay.com` / `animerelay` / `{{BRAND_COLOR}}` / `{{LOGO}}`
 > ドメイン未確定でも、まず Vercel の仮URL(`*.vercel.app`)で公開 → 後からカスタムドメインを接続できる。
 
 ---
@@ -56,7 +56,7 @@ echo "INDEXNOW_KEY=$(openssl rand -hex 16)"
 ## STEP 3. Cloudflare(ゾーン + R2 + Turnstile)
 
 ### 3-1. DNS ゾーン
-1. Cloudflare にサイト追加 → `{{DOMAIN}}`
+1. Cloudflare にサイト追加 → `animerelay.com`
 2. 表示された2つのネームサーバーをレジストラ側で設定 → ゾーンが **Active** になるまで待つ
 3. Active 後にレコード追加:
 
@@ -69,11 +69,11 @@ echo "INDEXNOW_KEY=$(openssl rand -hex 16)"
 - ⚠ apex/www を Proxied にすると Vercel の証明書発行に失敗 → **必ず DNS only**
 
 ### 3-2. R2(画像ストレージ)
-1. バケット作成: **`{{PROJECT_SLUG}}-public`**
-2. バケット → Settings → Custom Domains に `img.{{DOMAIN}}` を追加(自動で Proxied)
+1. バケット作成: **`animerelay-public`**
+2. バケット → Settings → Custom Domains に `img.animerelay.com` を追加(自動で Proxied)
 3. R2 API トークン(Object Read & Write・当該バケット限定)→ `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`
 4. 環境変数: `R2_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com` /
-   `R2_BUCKET={{PROJECT_SLUG}}-public` / `R2_PUBLIC_BASE_URL=https://img.{{DOMAIN}}`
+   `R2_BUCKET=animerelay-public` / `R2_PUBLIC_BASE_URL=https://img.animerelay.com`
 
 ### 3-3. Turnstile(会員登録・投稿・PR送信のスパム対策)
 1. Cloudflare → Turnstile → サイト追加 → `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY`
@@ -85,7 +85,7 @@ echo "INDEXNOW_KEY=$(openssl rand -hex 16)"
 
 ## STEP 5. 会員OAuth(任意・後追い可)
 
-各コンソールでリダイレクトURI `https://{{DOMAIN}}/api/auth/callback/{provider}` を登録:
+各コンソールでリダイレクトURI `https://animerelay.com/api/auth/callback/{provider}` を登録:
 - Google → `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`
 - Discord → `AUTH_DISCORD_ID` / `AUTH_DISCORD_SECRET`
 - X → `AUTH_TWITTER_ID` / `AUTH_TWITTER_SECRET`
@@ -104,9 +104,9 @@ echo "INDEXNOW_KEY=$(openssl rand -hex 16)"
 ```
 DATABASE_URL          = (Supabase Transaction pooler 6543 のURL)
 DIRECT_DATABASE_URL   = (Supabase Session pooler 5432 のURL)
-NEXT_PUBLIC_SITE_URL  = https://{{DOMAIN}}
-NEXT_PUBLIC_SITE_NAME = {{SITE_NAME}}
-NEXT_PUBLIC_IMG_HOST  = img.{{DOMAIN}}
+NEXT_PUBLIC_SITE_URL  = https://animerelay.com
+NEXT_PUBLIC_SITE_NAME = Anime Relay
+NEXT_PUBLIC_IMG_HOST  = img.animerelay.com
 AUTH_SECRET           = (STEP 0)
 PREVIEW_SECRET        = (STEP 0)
 CRON_SECRET           = (STEP 0)
@@ -119,8 +119,8 @@ AI_MODEL_MODERATE     = gpt-4o-mini
 R2_ENDPOINT           = https://<account-id>.r2.cloudflarestorage.com
 R2_ACCESS_KEY_ID      = ...
 R2_SECRET_ACCESS_KEY  = ...
-R2_BUCKET             = {{PROJECT_SLUG}}-public
-R2_PUBLIC_BASE_URL    = https://img.{{DOMAIN}}
+R2_BUCKET             = animerelay-public
+R2_PUBLIC_BASE_URL    = https://img.animerelay.com
 NEXT_PUBLIC_TURNSTILE_SITE_KEY = ...
 TURNSTILE_SECRET_KEY  = ...
 RESEND_API_KEY        = re_...
@@ -134,7 +134,7 @@ AUTH_DISCORD_ID= / AUTH_DISCORD_SECRET=
 AUTH_TWITTER_ID= / AUTH_TWITTER_SECRET=
 ```
 
-6. Domains: `{{DOMAIN}}` と `www.{{DOMAIN}}` を追加(www→apex リダイレクト推奨)
+6. Domains: `animerelay.com` と `www.animerelay.com` を追加(www→apex リダイレクト推奨)
 7. ⚠ **Preview デプロイも本番DBに `migrate deploy` する**(スキーマ変更PRは本番DBを先に移行)
 
 ## STEP 7. 初期化(カテゴリー7種 + 管理者)
@@ -144,14 +144,14 @@ AUTH_TWITTER_ID= / AUTH_TWITTER_SECRET=
 ```bash
 DATABASE_URL="<Transaction poolerのURL>" \
 DIRECT_DATABASE_URL="<Session poolerのURL>" \
-SEED_ADMIN_EMAIL="admin@{{DOMAIN}}" \
+SEED_ADMIN_EMAIL="admin@animerelay.com" \
 SEED_ADMIN_PASSWORD="<12文字以上の強いパスワード>" \
 pnpm db:seed:prod
 ```
 
 ## STEP 8. 公開後の設定
 
-1. `https://{{DOMAIN}}/admin` にログイン(STEP 7 の管理者)
+1. `https://animerelay.com/admin` にログイン(STEP 7 の管理者)
 2. **RSS ソース登録**(`/admin/rss`):
    - 通常フィード = 収集 → AI日本語記事化 → 5言語翻訳 → 公開
    - **プレスリリース源**(「プレスリリース源」にチェック)= 例 apocwire アニメカテゴリー。

@@ -10,7 +10,7 @@
 
 type EmbedKind = "facebook" | "youtube" | "link";
 
-function detectEmbed(url: string): { kind: EmbedKind; src?: string } {
+export function detectEmbed(url: string): { kind: EmbedKind; src?: string } {
   let host = "";
   try {
     host = new URL(url).hostname.replace(/^www\./, "");
@@ -129,6 +129,61 @@ export function EmbedRenderer({
         {viewOnLabel} <span aria-hidden="true">→</span>
       </span>
     </a>
+  );
+}
+
+/**
+ * カード一覧用のコンパクトな埋め込みプレビュー。
+ * 親要素(position: relative の 4/3 枠など)を満たすように iframe を敷く。
+ * iframe を読み込めない環境では再生バッジ+プロバイダー名にフォールバックする。
+ * カード全体は Link で包まれているため、iframe はクリックを透過させる
+ * (pointer-events-none)= プレビュー表示専用にして、クリックは詳細ページへ。
+ */
+export function EmbedPreview({
+  url,
+  provider,
+}: {
+  url: string;
+  provider?: string | null;
+}) {
+  const embed = detectEmbed(url);
+  const canEmbed =
+    (embed.kind === "facebook" || embed.kind === "youtube") && embed.src;
+
+  return (
+    <>
+      {/* ベース層: 再生バッジ+プロバイダー名。iframe が読み込めない/未対応でも
+          崩れないよう常に背面に敷く */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center"
+      >
+        <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-white">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5 v14 l11 -7 Z" />
+          </svg>
+        </span>
+        {provider ? (
+          <span className="font-heading text-[13px] font-extrabold uppercase text-white">
+            {provider}
+          </span>
+        ) : null}
+      </div>
+      {/* 埋め込みプレビュー(iframe)。クリックは透過させ、カードのリンクへ委ねる */}
+      {canEmbed ? (
+        <div className="pointer-events-none absolute inset-0">
+          <iframe
+            src={embed.src}
+            title={provider ?? "Embedded post"}
+            className="h-full w-full"
+            style={{ border: "none" }}
+            scrolling="no"
+            loading="lazy"
+            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+          />
+        </div>
+      ) : null}
+    </>
   );
 }
 

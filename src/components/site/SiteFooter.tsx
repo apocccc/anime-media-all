@@ -85,45 +85,19 @@ export async function SiteFooter({ locale }: { locale: string }) {
           </ul>
         </div>
 
-        {/* ニュースレター(表示のみ。§13 将来スコープ) */}
-        <div className="ml-auto flex flex-wrap items-center gap-4">
-          <div>
-            <p className="font-heading text-[18px] font-extrabold uppercase leading-none">
-              {t("footer.newsletter")}
-            </p>
-            <p className="mt-1 max-w-[210px] text-[12px] font-medium leading-snug text-white/85">
-              {t("footer.newsletterNote")}
-            </p>
-          </div>
-          <form className="flex items-center gap-2" aria-label={t("footer.newsletter")}>
-            <input
-              type="email"
-              placeholder={t("footer.emailPlaceholder")}
-              aria-label={t("footer.emailPlaceholder")}
-              className="h-[40px] w-[200px] rounded-[5px] bg-surface px-4 text-[13px] text-ink outline-none placeholder:text-[#a29fa9] xl:w-[270px]"
-            />
-            <button
-              type="submit"
-              className="h-[40px] w-[108px] rounded-[5px] bg-primary font-heading text-[14px] font-extrabold uppercase text-white hover:bg-primary-dark"
-            >
-              {t("footer.subscribe")}
-            </button>
-          </form>
-
-          {/* ステッカー装飾 */}
-          <div className="hidden items-center gap-2.5 xl:flex">
-            <StarSpark size={24} />
-            <Heart size={22} />
-            <span
-              aria-hidden="true"
-              className="flex h-[26px] w-[26px] items-center justify-center rounded-full border-2 border-ink bg-teal text-[13px] leading-none"
-            >
-              ☻
-            </span>
-            <span className="rotate-2 rounded-full border-2 border-ink bg-soft-pink px-3 py-1 font-heading text-[12px] font-extrabold uppercase text-ink">
-              {t("footer.stayOtaku")}
-            </span>
-          </div>
+        {/* ステッカー装飾 */}
+        <div className="ml-auto flex items-center gap-2.5">
+          <StarSpark size={24} />
+          <Heart size={22} />
+          <span
+            aria-hidden="true"
+            className="flex h-[26px] w-[26px] items-center justify-center rounded-full border-2 border-ink bg-teal text-[13px] leading-none"
+          >
+            ☻
+          </span>
+          <span className="rotate-2 rounded-full border-2 border-ink bg-soft-pink px-3 py-1 font-heading text-[12px] font-extrabold uppercase text-ink">
+            {t("footer.stayOtaku")}
+          </span>
         </div>
       </div>
 

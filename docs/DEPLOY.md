@@ -95,7 +95,7 @@ echo "INDEXNOW_KEY=$(openssl rand -hex 16)"
 ## STEP 6. Vercel
 
 1. New Project → GitHub リポジトリ(`apocccc/anime-media-all`)を Import
-2. **Production Branch = `main`**(※現在の作業ブランチを main にマージ後)
+2. **Production Branch = リポジトリのデフォルトブランチ**(Vercel が自動選択。現状 `claude/anime-media-dev-it54oa` が既定ブランチなので、そのまま本番として公開される。main へのマージは不要)
 3. Build Command は `vercel.json` に設定済み(`npx prisma migrate deploy && next build`)。
    関数リージョンは `hnd1`(東京)固定済み
 4. **Pro プラン**に(cron を分単位で使うため)

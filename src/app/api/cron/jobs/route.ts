@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import type { Locale as DbLocale } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { drainJobs } from "@/lib/jobs";
-import { translateArticle, queueArticleTranslations } from "@/lib/translate";
+import {
+  translateArticle,
+  queueArticleTranslations,
+  prepareAndQueueTranslations,
+} from "@/lib/translate";
 import { aiScreenFanPost, translateFanPost } from "@/lib/moderation";
-import { extractAndRegisterTerms } from "@/lib/glossary";
 import { revalidateArticle } from "@/lib/revalidate";
 import { isAuthorizedCron } from "@/lib/cron-auth";
 
@@ -43,15 +46,11 @@ export async function GET(req: Request) {
       const { postId } = job.payload as { postId: string };
       await aiScreenFanPost(postId);
     },
+    // 翻訳準備(§4.3): マスター全文から固有名詞を抽出・pending 登録した後に、
+    // ロケール別の翻訳ジョブへ fan-out する。「分析 → 翻訳」の順序をここで保証する。
     glossary_extract: async (job) => {
       const { articleId } = job.payload as { articleId: string };
-      const article = await prisma.article.findUnique({
-        where: { id: articleId },
-        include: { translations: { where: { locale: "ja" } } },
-      });
-      const master = article?.translations[0];
-      if (!master) return;
-      await extractAndRegisterTerms(articleId, `${master.title}\n${master.lead}`);
+      await prepareAndQueueTranslations(articleId);
     },
     // 用語表記変更の波及: その用語を含む公開済み記事を一括再翻訳キューへ(§5.3)
     retranslate_term: async (job) => {

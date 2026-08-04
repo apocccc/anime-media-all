@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import type { JSONContent } from "@tiptap/core";
 import { aiCompleteJson, aiConfigured, modelForRole } from "@/lib/ai/provider";
 import { buildRewrittenBody, extractSource, fetchPageText } from "@/lib/rewrite";
-import { extractAndRegisterTerms } from "@/lib/glossary";
 import { queueArticleTranslations } from "@/lib/translate";
 import { articleSlug } from "@/lib/slug";
 
@@ -202,9 +201,7 @@ export async function generateMasterArticles(
           }
         }
 
-        // 固有名詞の抽出・pending 登録 → 翻訳キュー投入
-        const masterText = `${output.title}\n${output.lead}\n${output.paragraphs.join("\n")}`;
-        await extractAndRegisterTerms(article.id, masterText);
+        // 翻訳キュー投入(固有名詞分析 → 翻訳の順は準備ジョブ内で全文に対して実行)
         await queueArticleTranslations(article.id);
 
         summary.generated++;

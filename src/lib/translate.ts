@@ -11,6 +11,7 @@ import {
   splitBlocks,
 } from "@/lib/blocks";
 import {
+  extractAndRegisterTerms,
   findTermsInText,
   glossaryForLocale,
   hasBlockingPendingTerms,
@@ -211,10 +212,58 @@ export async function translateArticle(
 }
 
 /**
- * 記事の全公開ロケール分の翻訳ジョブを投入する。
- * excluded / human 翻訳のロケールはジョブ側でスキップされる。
+ * 記事の翻訳を投入する(§4.3 の入口)。
+ * 「固有名詞分析 → 翻訳」の順序を保証するため、まず準備ジョブ(glossary_extract)を
+ * 1件だけ積む。準備ジョブがマスター全文から固有名詞を抽出・pending 登録した後で、
+ * ロケール別の翻訳ジョブへ fan-out する(prepareAndQueueTranslations)。
+ * これにより管理画面・プレスリリース・AI生成・用語変更の波及すべてが同じ順序を通る。
  */
 export async function queueArticleTranslations(articleId: string): Promise<number> {
+  const article = await prisma.article.findUnique({
+    where: { id: articleId },
+    select: { updatedAt: true },
+  });
+  if (!article) return 0;
+  await enqueueJob(
+    "glossary_extract",
+    { articleId },
+    `prepare-translate:${articleId}:${article.updatedAt.getTime()}`
+  );
+  return 1;
+}
+
+/**
+ * 準備ステップ(準備ジョブ本体): 翻訳の前に固有名詞分析を必ず実行する。
+ * 1. マスター(ja)全文から固有名詞を抽出し、未登録語を pending 登録(§5.3)
+ * 2. その後にロケール別の翻訳ジョブを fan-out する
+ * 分析を先に行うことで、確定表記の注入と「コア用語 pending の自動公開ブロック」が効く。
+ */
+export async function prepareAndQueueTranslations(articleId: string): Promise<number> {
+  const article = await prisma.article.findUnique({
+    where: { id: articleId },
+    select: { masterLocale: true },
+  });
+  if (!article) return 0;
+
+  const master = await prisma.articleTranslation.findUnique({
+    where: { articleId_locale: { articleId, locale: article.masterLocale } },
+  });
+  if (master) {
+    const masterText = `${master.title}\n${master.lead}\n${textOfDoc(
+      master.body as JSONContent
+    )}`;
+    // 固有名詞分析(抽出・pending 登録)を翻訳より前に実行する
+    await extractAndRegisterTerms(articleId, masterText);
+  }
+
+  return enqueueLocaleTranslations(articleId);
+}
+
+/**
+ * ロケール別翻訳ジョブの fan-out(分析後に呼ばれる)。
+ * excluded / human 翻訳のロケールはジョブ側でスキップされる。
+ */
+export async function enqueueLocaleTranslations(articleId: string): Promise<number> {
   let queued = 0;
   const article = await prisma.article.findUnique({
     where: { id: articleId },

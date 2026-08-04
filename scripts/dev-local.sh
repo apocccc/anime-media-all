@@ -82,15 +82,32 @@ grep -v -e '^DATABASE_URL=' -e '^DIRECT_DATABASE_URL=' .env > .env.new || true
 rm -f .env.new
 echo "▶ DATABASE_URL = $URL"
 
-# AI プロバイダー設定欄を用意(値は各自 .env に直接記入する)
+# AI プロバイダー設定欄を用意。
+# シェルに OPENAI_API_KEY があれば openai を自動選択、無ければ mock(APIキー不要)。
 if ! grep -q '^AI_PROVIDER=' .env; then
   {
-    echo '# AI: openai | anthropic | mock(mockはAPIキー不要のローカル用)'
-    echo 'AI_PROVIDER="mock"'
-    echo 'OPENAI_API_KEY=""'
+    echo ''
+    echo '# ── AI(自動翻訳・記事生成)──────────────────────'
+    echo '# openai | anthropic | mock(mockはAPIキー不要のローカル用)'
+    echo '# 自動翻訳を使うには AI_PROVIDER="openai" と OPENAI_API_KEY を設定する。'
+    if [ -n "${OPENAI_API_KEY:-}" ]; then
+      echo 'AI_PROVIDER="openai"'
+      echo "OPENAI_API_KEY=\"${OPENAI_API_KEY}\""
+    else
+      echo 'AI_PROVIDER="mock"'
+      echo 'OPENAI_API_KEY=""'
+    fi
     echo 'ANTHROPIC_API_KEY=""'
+    echo '# 役割別モデル(翻訳=品質重視 / モデレーション・固有名詞抽出=軽量)'
+    echo 'AI_MODEL_WRITE="gpt-4o"'
+    echo 'AI_MODEL_TRANSLATE="gpt-4o"'
+    echo 'AI_MODEL_MODERATE="gpt-4o-mini"'
   } >> .env
-  echo "▶ .env に AI_PROVIDER 設定欄を追加しました(既定: mock)"
+  if [ -n "${OPENAI_API_KEY:-}" ]; then
+    echo "▶ .env に AI 設定を追加しました(OpenAI キーを検出 → openai を有効化)"
+  else
+    echo "▶ .env に AI 設定を追加しました(既定: mock。OpenAI を使うには .env を編集)"
+  fi
 fi
 
 # --- 依存・スキーマ・シード ---

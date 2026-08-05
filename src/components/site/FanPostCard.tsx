@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import type { FanPostItem } from "@/lib/data-community";
 import { fanPostBody, seriesTitle } from "@/lib/data-community";
 import { EmbedPreview } from "@/components/site/EmbedRenderer";
+import { VoteButton } from "@/components/site/VoteButton";
 import { toDbLocale } from "@/lib/locale";
 
 /** 投稿タイプ別の固定チップ配色(マット単色) */
@@ -37,6 +38,8 @@ export async function FanPostCard({
   const { body } = fanPostBody(post, db);
   const isEmbed = post.type === "embed" && Boolean(post.embedUrl);
   const href = `/fans/${post.id}`;
+  // 投稿者名: 埋め込みの元アカウント名(posterName)を優先、無ければ投稿者名
+  const displayName = post.posterName ?? post.author.name;
 
   // メディア枠(サムネイル / 埋め込みプレビュー / テキストプレースホルダー)
   const media = mediaUrl ? (
@@ -61,9 +64,9 @@ export async function FanPostCard({
     </div>
   );
 
-  // 本文・メタ情報(常に詳細ページへのリンク)
-  const footer = (
-    <div className="pt-2">
+  // 詳細ページへ飛ぶ本文リンク(タイプチップ・作品名・本文)
+  const linkedBody = (
+    <>
       <div className="flex items-center gap-2">
         <span className={`shrink-0 ${fanTypeChip(post.type)}`}>
           {t(`fans.types.${post.type}`)}
@@ -77,35 +80,29 @@ export async function FanPostCard({
           {body}
         </p>
       ) : null}
-      <div className="mt-2 flex items-center justify-between gap-2 border-t border-dashed border-dash pt-1.5 text-[11.5px] text-gray">
-        <span className="truncate">
-          {t("fans.postedBy")}{" "}
-          <span className="font-semibold text-ink">{post.author.name}</span>
-        </span>
-        <span className="shrink-0 font-heading text-[12px] font-extrabold uppercase text-ink">
-          {t("fans.votes", { count: post.voteCount })}
-        </span>
-      </div>
-    </div>
+    </>
   );
 
   return (
-    <article className="group rounded-[13px] border-2 border-ink bg-surface p-[10px]">
-      {isEmbed ? (
-        // 埋め込み: プレビューはそのまま(iframeで再生可)、テキストは詳細リンク
-        <>
-          {media}
-          <Link href={href} className="block">
-            {footer}
-          </Link>
-        </>
-      ) : (
-        // 通常: カード全体を詳細リンクにする
-        <Link href={href} className="block">
-          {media}
-          {footer}
-        </Link>
-      )}
+    <article className="group flex flex-col rounded-[13px] border-2 border-ink bg-surface p-[10px]">
+      {/* メディア: 埋め込みはリンク外(iframeは<a>に入れられない)、通常は詳細リンク */}
+      {isEmbed ? media : <Link href={href} className="block">{media}</Link>}
+      <Link href={href} className="block pt-2">
+        {linkedBody}
+      </Link>
+      {/* 投稿者名 + 投票ボタン(リンク外=この一覧上で投票できる) */}
+      <div className="mt-2 flex items-center justify-between gap-2 border-t border-dashed border-dash pt-1.5">
+        <span className="min-w-0 truncate text-[11.5px] text-gray">
+          {t("fans.postedBy")}{" "}
+          <span className="font-semibold text-ink">{displayName}</span>
+        </span>
+        <VoteButton
+          postId={post.id}
+          initialVotes={post.voteCount}
+          size="sm"
+          labels={{ vote: t("fans.vote"), voted: t("fans.voted") }}
+        />
+      </div>
     </article>
   );
 }

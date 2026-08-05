@@ -10,7 +10,6 @@ import {
   incrementFanPostView,
   seriesTitle,
 } from "@/lib/data-community";
-import { auth } from "@/lib/auth";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { EmbedRenderer } from "@/components/site/EmbedRenderer";
 import { fanTypeChip } from "@/components/site/FanPostCard";
@@ -53,7 +52,7 @@ export default async function FanPostPage({
   setRequestLocale(locale);
   const db = toDbLocale(locale);
 
-  const [post, session] = await Promise.all([getFanPost(postId), auth()]);
+  const post = await getFanPost(postId);
   if (!post) notFound();
   incrementFanPostView(post.id);
 
@@ -89,7 +88,10 @@ export default async function FanPostPage({
         <div className="mt-3 flex items-center justify-between gap-3 border-y border-dashed border-dash py-2.5 text-[13px] text-gray">
           <span>
             {t("fans.postedBy")}{" "}
-            {post.author.handle ? (
+            {post.posterName ? (
+              // 埋め込みの元アカウント名(例: Facebookアカウント名)
+              <span className="font-medium text-ink">{post.posterName}</span>
+            ) : post.author.handle ? (
               <Link
                 href={`/creators/${post.author.handle}`}
                 className="font-medium text-ink hover:text-primary"
@@ -163,12 +165,7 @@ export default async function FanPostPage({
           <VoteButton
             postId={post.id}
             initialVotes={post.voteCount}
-            signedIn={Boolean(session?.user)}
-            labels={{
-              vote: t("fans.vote"),
-              voted: t("fans.voted"),
-              loginToVote: t("fans.loginToVote"),
-            }}
+            labels={{ vote: t("fans.vote"), voted: t("fans.voted") }}
           />
           <Link
             href="/contact"

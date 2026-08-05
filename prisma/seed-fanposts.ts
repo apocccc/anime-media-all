@@ -11,14 +11,16 @@ import { PrismaClient, type Locale } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const URLS = [
-  "https://www.facebook.com/groups/1014925085703099/permalink/2432847373910856/",
-  "https://www.facebook.com/groups/1583391013299344/permalink/1586606079644504/",
-  "https://www.facebook.com/reel/37322684327379499",
-  "https://fb.watch/IOrVwXWoAB/",
-  "https://www.facebook.com/groups/hololiveocg/permalink/4472128769742730/",
-  "https://fb.watch/IOrWMD7d80/",
-  "https://www.facebook.com/groups/367555341235548/permalink/1721752629149139/",
+// url = 埋め込む投稿URL / name = 「Posted by」に表示する元アカウント名(任意)。
+// name を埋めて再実行すると、既存投稿の表示名も更新される(冪等)。
+const POSTS: { url: string; name?: string }[] = [
+  { url: "https://www.facebook.com/groups/1014925085703099/permalink/2432847373910856/", name: "" },
+  { url: "https://www.facebook.com/groups/1583391013299344/permalink/1586606079644504/", name: "" },
+  { url: "https://www.facebook.com/reel/37322684327379499", name: "" },
+  { url: "https://fb.watch/IOrVwXWoAB/", name: "" },
+  { url: "https://www.facebook.com/groups/hololiveocg/permalink/4472128769742730/", name: "" },
+  { url: "https://fb.watch/IOrWMD7d80/", name: "" },
+  { url: "https://www.facebook.com/groups/367555341235548/permalink/1721752629149139/", name: "" },
 ];
 
 /** URLのホストから配信元名を判定(SNS埋め込みの許可ホスト) */
@@ -62,21 +64,33 @@ async function main() {
   });
 
   let created = 0;
+  let updated = 0;
   let skipped = 0;
-  for (const url of URLS) {
+  for (const { url, name } of POSTS) {
     const provider = providerOf(url);
     if (!provider) {
       console.log("skip (未対応ホスト):", url);
       skipped++;
       continue;
     }
+    const posterName = name?.trim() || null;
     const exists = await prisma.fanPost.findFirst({
       where: { embedUrl: url },
-      select: { id: true },
+      select: { id: true, posterName: true },
     });
     if (exists) {
-      console.log("skip (登録済み):", url);
-      skipped++;
+      // 既存: 表示名(posterName)だけ更新(名前を後から埋めて再実行できる)
+      if (posterName && posterName !== exists.posterName) {
+        await prisma.fanPost.update({
+          where: { id: exists.id },
+          data: { posterName },
+        });
+        console.log("updated name:", url, "→", posterName);
+        updated++;
+      } else {
+        console.log("skip (登録済み):", url);
+        skipped++;
+      }
       continue;
     }
     await prisma.fanPost.create({
@@ -89,14 +103,17 @@ async function main() {
         originalLocale: "ja" as Locale,
         embedUrl: url,
         embedProvider: provider,
+        posterName,
         publishedAt: new Date(),
       },
     });
-    console.log("created:", url);
+    console.log("created:", url, posterName ? `(${posterName})` : "");
     created++;
   }
 
-  console.log(`\n✅ fan posts: ${created} 件登録 / ${skipped} 件スキップ`);
+  console.log(
+    `\n✅ fan posts: ${created} 件登録 / ${updated} 件名前更新 / ${skipped} 件スキップ`
+  );
 }
 
 main()

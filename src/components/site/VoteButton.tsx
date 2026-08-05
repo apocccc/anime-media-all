@@ -3,34 +3,30 @@
 import { useState, useTransition } from "react";
 import { voteAction } from "@/app/(site)/[locale]/fans/actions";
 
-/** 投票ボタン(動的部分のみクライアント) */
+/**
+ * 投票ボタン(動的部分のみクライアント)。
+ * 認証状態はサーバーで判定せず(=一覧はSSGを維持)、投票時に未ログインなら
+ * サインインへ誘導する。size="sm" は一覧カード用のコンパクト表示。
+ */
 export function VoteButton({
   postId,
   initialVotes,
   labels,
-  signedIn,
+  size = "md",
 }: {
   postId: string;
   initialVotes: number;
-  labels: { vote: string; voted: string; loginToVote: string };
-  signedIn: boolean;
+  labels: { vote: string; voted: string };
+  size?: "sm" | "md";
 }) {
   const [votes, setVotes] = useState(initialVotes);
   const [voted, setVoted] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  if (!signedIn) {
-    // ロケール外ルートへの遷移のため <a> を使用
-    return (
-      // eslint-disable-next-line @next/next/no-html-link-for-pages
-      <a
-        href="/api/auth/signin"
-        className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-surface px-4 py-1.5 font-heading text-sm font-extrabold uppercase text-ink hover:bg-yellow"
-      >
-        ♥ {labels.loginToVote}
-      </a>
-    );
-  }
+  const sizeCls =
+    size === "sm"
+      ? "gap-1 border-2 px-2.5 py-1 text-[11px]"
+      : "gap-1.5 border-2 px-4 py-1.5 text-sm";
 
   return (
     <button
@@ -44,16 +40,18 @@ export function VoteButton({
             setVoted(true);
           } else if (result.error === "already_voted") {
             setVoted(true);
+          } else if (result.error === "unauthenticated") {
+            window.location.href = "/api/auth/signin";
           }
         })
       }
-      className={`inline-flex items-center gap-1.5 rounded-full border-2 border-ink px-4 py-1.5 font-heading text-sm font-extrabold uppercase transition-colors ${
+      className={`inline-flex shrink-0 cursor-pointer items-center rounded-full border-ink font-heading font-extrabold uppercase transition-colors active:translate-y-px disabled:cursor-default ${sizeCls} ${
         voted
           ? "bg-primary-light text-primary-dark"
           : "bg-primary text-white hover:bg-primary-dark"
       }`}
     >
-      ♥ {voted ? labels.voted : labels.vote} ({votes})
+      ♥ {size === "sm" ? "" : voted ? labels.voted : `${labels.vote} `}({votes})
     </button>
   );
 }

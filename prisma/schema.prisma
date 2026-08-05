@@ -530,6 +530,8 @@ model FanPost {
   mediaIds       String[]      @default([])
   embedUrl       String?
   embedProvider  String?
+  // 埋め込み投稿の元アカウント名(例: Facebookアカウント名)。未設定なら投稿者名を表示
+  posterName     String?
   score          Int           @default(0)
   voteCount      Int           @default(0)
   viewCount      Int           @default(0)

@@ -12,7 +12,7 @@
     },
     {
       "path": "/api/cron/generate",
-      "schedule": "0 0,6,12 * * *"
+      "schedule": "0 */2 * * *"
     },
     {
       "path": "/api/cron/jobs",

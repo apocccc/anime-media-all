@@ -15,13 +15,13 @@ import { SITE_URL } from "@/lib/site";
  * (自動公開はフィード単位でオプトイン)。
  */
 
-const PER_CATEGORY_LIMIT = 3;
+const PER_CATEGORY_LIMIT = 10;
 const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const TIME_BUDGET_MS = 270_000;
 
-/** ランダム時刻公開: 現在時刻の30〜90分後のランダムな時刻 */
+/** ランダム時刻公開: 現在時刻の2〜12分後のランダムな時刻(自然な分散を保ちつつ早めに公開) */
 export function computeReleaseTime(now: Date, random = Math.random()): Date {
-  const offsetMin = 30 + Math.floor(random * 60);
+  const offsetMin = 2 + Math.floor(random * 10);
   return new Date(now.getTime() + offsetMin * 60_000);
 }
 

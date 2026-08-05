@@ -14,7 +14,6 @@ import {
   extractAndRegisterTerms,
   findTermsInText,
   glossaryForLocale,
-  hasBlockingPendingTerms,
   verifyGlossary,
   type GlossaryPair,
 } from "@/lib/glossary";
@@ -180,9 +179,9 @@ export async function translateArticle(
     violations = verifyGlossary(masterText, outputText, glossary);
   }
 
-  // コア用語の pending がある場合も needs_review(既定で自動公開しない)
-  const blocked = await hasBlockingPendingTerms(masterText);
-  const status = violations.length > 0 || blocked ? "needs_review" : "machine";
+  // 自動運用: 生成記事は自動翻訳→自動公開する(手動レビュー待ちを設けない)。
+  // 用語表記の不一致は公開後に用語監査cron(glossary-audit)が検出・是正する。
+  const status = "machine" as const;
 
   await prisma.articleTranslation.upsert({
     where: { articleId_locale: { articleId, locale } },

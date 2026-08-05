@@ -39,7 +39,7 @@
       "recentDrafts": "最近の下書き",
       "views": "閲覧数",
       "empty": "データがありません",
-      "translationQueue": "翻訳キュー",
+      "translationQueue": "ジョブ処理中",
       "needsReview": "要レビュー翻訳",
       "pendingTerms": "未確定用語",
       "moderationQueue": "投稿承認待ち",

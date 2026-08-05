@@ -24,7 +24,6 @@ export default async function AdminDashboard() {
     drafts,
     queuedJobs,
     failedJobs,
-    needsReview,
     pendingTerms,
     moderationQueue,
     partnerQueue,
@@ -42,7 +41,6 @@ export default async function AdminDashboard() {
     prisma.article.count({ where: { status: "draft" } }),
     prisma.job.count({ where: { status: { in: ["queued", "running"] } } }),
     prisma.job.count({ where: { status: "failed" } }),
-    prisma.articleTranslation.count({ where: { status: "needs_review" } }),
     prisma.term.count({ where: { status: "pending" } }),
     prisma.fanPost.count({ where: { status: "pending" } }),
     prisma.organization.count({ where: { status: "pending" } }),
@@ -94,7 +92,6 @@ export default async function AdminDashboard() {
 
   const monitors = [
     { label: t("translationQueue"), value: queuedJobs, href: "/admin/jobs", warn: false },
-    { label: t("needsReview"), value: needsReview, href: "/admin/translations", warn: needsReview > 0 },
     { label: t("pendingTerms"), value: pendingTerms, href: "/admin/glossary?status=pending", warn: pendingTerms > 0 },
     { label: t("moderationQueue"), value: moderationQueue, href: "/admin/moderation", warn: moderationQueue > 0 },
     { label: t("partnerQueue"), value: partnerQueue, href: "/admin/partners", warn: partnerQueue > 0 },

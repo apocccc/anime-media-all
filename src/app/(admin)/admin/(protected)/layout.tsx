@@ -21,7 +21,6 @@ export default async function ProtectedAdminLayout({
   const nav = [
     { href: "/admin", label: t("nav.dashboard") },
     { href: "/admin/articles", label: t("nav.articles") },
-    { href: "/admin/translations", label: t("nav.translations") },
     ...(canManageTaxonomy
       ? [
           { href: "/admin/glossary", label: t("nav.glossary") },

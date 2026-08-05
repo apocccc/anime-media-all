@@ -1,14 +1,16 @@
 {
   "site": {
-    "name": "Huandao News",
-    "tagline": "Taiwan's pulse, around the island",
-    "description": "Huandao News is a Taiwan-focused news and lifestyle site covering politics, society, business, tech, and daily life."
+    "name": "Anime Relay",
+    "tagline": "Anime news from Japan, in your language",
+    "description": "The latest Japanese anime, manga, game and IP news — delivered fast and accurately in your language, with fan communities for every series."
   },
   "nav": {
     "home": "Home",
     "search": "Search",
     "menu": "Menu",
-    "allCategories": "All categories"
+    "allCategories": "All categories",
+    "fans": "Fan Posts",
+    "prize": "Weekly Prize"
   },
   "labels": {
     "breaking": "Breaking",
@@ -17,10 +19,11 @@
     "latestNews": "Latest News",
     "topStories": "Top Stories",
     "relatedArticles": "Related Articles",
-    "pressRelease": "Press Release",
+    "pressRelease": "PR / Press Release",
     "pressReleaseNotice": "This article is a press release provided by the organization named below, which is responsible for its content.",
     "prSource": "Source",
-    "sourceFrom": "Reprinted from",
+    "sourceFrom": "Source",
+    "sources": "Sources",
     "prProvidedBy": "Press release by",
     "originalArticle": "Original article",
     "imageSource": "Image credit",
@@ -35,11 +38,14 @@
     "page": "Page {page}",
     "prevPage": "Previous",
     "nextPage": "Next",
-    "articleCount": "{count} articles"
+    "articleCount": "{count} articles",
+    "machineTranslated": "This article was translated automatically. The Japanese source text is authoritative.",
+    "relatedSeries": "Related series",
+    "spoiler": "Spoiler — tap to reveal"
   },
   "search": {
     "title": "Search",
-    "placeholder": "Search news…",
+    "placeholder": "Search anime news…",
     "resultsFor": "Search results for \"{query}\"",
     "noResults": "No articles found for \"{query}\".",
     "button": "Search"
@@ -50,31 +56,133 @@
   "tag": {
     "articlesTagged": "Tag: {tag}"
   },
+  "series": {
+    "title": "Series",
+    "newsTab": "News",
+    "fansTab": "Fan Posts",
+    "infoTab": "Info",
+    "officialSite": "Official site",
+    "officialLinks": "Official links",
+    "broadcast": "Broadcast",
+    "episodes": "Episodes",
+    "season": "Season",
+    "streaming": "Streaming",
+    "latestNews": "Latest news for {title}",
+    "fanPostsFor": "Fan posts for {title}",
+    "viewAllFans": "View all fan posts",
+    "noFanPosts": "No fan posts for this series yet. Be the first!",
+    "postAbout": "Post about this series"
+  },
+  "fans": {
+    "title": "Fan Posts",
+    "latest": "Latest",
+    "popular": "Popular",
+    "bySeries": "By series",
+    "postDetail": "Fan post",
+    "votes": "{count} votes",
+    "vote": "Vote",
+    "voted": "Voted",
+    "loginToVote": "Sign in to vote",
+    "postedBy": "Posted by",
+    "original": "Original",
+    "translation": "Translation",
+    "showOriginal": "Show original",
+    "showTranslation": "Show translation",
+    "aiTranslationNote": "Translations are generated automatically. The original text is authoritative.",
+    "report": "Report",
+    "postNew": "Submit a post",
+    "types": {
+      "illustration": "Illustration",
+      "cosplay": "Cosplay",
+      "photo": "Photo",
+      "text": "Text",
+      "embed": "Embed"
+    },
+    "viewOriginalPost": "View original post"
+  },
+  "prize": {
+    "title": "Weekly Prize",
+    "description": "Every week, the best fan post wins a prize. Winners are selected by our editorial team based on creativity and quality.",
+    "currentCycle": "This week",
+    "pastWinners": "Past winners",
+    "rules": "Rules",
+    "votingEnds": "Voting ends",
+    "winner": "Winner",
+    "week": "Week of {date}",
+    "noCycle": "No prize cycle is currently open.",
+    "judgingNote": "Winners are selected by editorial review, taking reader votes into account. This is a merit-based contest, not a lottery.",
+    "rulesBody": "Eligibility, age requirements, excluded regions, prize contents, selection method, tax handling and personal data usage are described here per region. Employees and affiliates are not eligible. Please review the rules for your region before entering."
+  },
+  "creators": {
+    "postsBy": "Posts by {name}",
+    "creator": "Creator"
+  },
+  "press": {
+    "companyPage": "Company",
+    "pressReleasesBy": "Press releases by {name}",
+    "aboutCompany": "About",
+    "website": "Website",
+    "contact": "Contact"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "myPage": "My page"
+  },
   "footer": {
     "about": "About",
     "contact": "Contact",
     "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
     "rss": "RSS Feeds",
-    "copyright": "© {year} Huandao News. All rights reserved."
+    "fans": "Fan Posts",
+    "prize": "Weekly Prize",
+    "forPartners": "For Businesses (Press Release)",
+    "copyright": "© {year} {name}. All rights reserved.",
+    "followUs": "FOLLOW US",
+    "stayOtaku": "STAY OTAKU!"
   },
   "pages": {
     "about": {
       "title": "About Us",
-      "body": "Huandao News is a Taiwan-focused news and lifestyle site. We believe news is more than breaking headlines — it is a tool for understanding daily life. From politics and society to travel and food, we go around the island with you."
+      "body": "We deliver Japanese anime and IP news to fans around the world, fast and accurately, in their own language. Beyond news, we host fan communities for every series and a weekly prize for the best fan posts. Consistent, official-first terminology is the core of our reliability."
     },
     "contact": {
       "title": "Contact",
-      "body": "News tips, partnerships, and press release submissions are welcome. We will get back to you as soon as possible.",
+      "body": "News tips, partnership inquiries, press release submissions and takedown requests (DMCA equivalent) are welcome. We will get back to you as soon as possible.",
       "email": "Email"
     },
     "privacy": {
       "title": "Privacy Policy",
-      "body": "Huandao News respects your privacy. We collect and use data only to the minimum extent necessary to provide our services, and we do not share your personal data with third parties. This policy will be updated as our services evolve."
+      "body": "We respect your privacy. We collect and use data only to the minimum extent necessary to provide our services, and we do not share your personal data with third parties. This policy will be updated as our services evolve."
     }
   },
   "notFound": {
     "title": "Page not found",
     "description": "The page you are looking for does not exist or has been moved.",
     "backHome": "Back to home"
+  },
+  "ticker": {
+    "live": "LIVE NOW!",
+    "readNow": "READ NOW"
+  },
+  "hero": {
+    "featured": "FEATURED",
+    "viewDetails": "VIEW DETAILS",
+    "burstTop": "HOT",
+    "burstBottom": "TOPIC!"
+  },
+  "community": {
+    "line1": "JOIN THE",
+    "line2": "ANIME",
+    "line3": "CREW!",
+    "bubble1": "DISCUSS!",
+    "bubble2": "SHARE!",
+    "bubble3": "DISCOVER!",
+    "bubble4": "BE PART OF THE STORY!",
+    "cta": "SIGN UP FREE"
+  },
+  "home": {
+    "viewAllRankings": "VIEW ALL RANKINGS"
   }
 }

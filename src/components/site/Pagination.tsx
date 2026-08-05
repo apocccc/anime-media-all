@@ -28,25 +28,25 @@ export async function Pagination({
   return (
     <nav
       aria-label="Pagination"
-      className="mt-10 flex items-center justify-center gap-4 text-sm font-medium"
+      className="mt-10 flex items-center justify-center gap-4 font-heading text-sm font-extrabold uppercase"
     >
       {page > 1 ? (
         <Link
           href={hrefFor(page - 1)}
           rel="prev"
-          className="rounded border border-line px-4 py-2 hover:border-primary hover:text-primary"
+          className="rounded-[7px] border-2 border-ink bg-surface px-4 py-2 text-ink hover:bg-yellow"
         >
           ← {t("labels.prevPage")}
         </Link>
       ) : null}
-      <span className="text-gray">
+      <span className="font-sans text-sm font-semibold text-gray">
         {t("labels.page", { page })} / {totalPages}
       </span>
       {page < totalPages ? (
         <Link
           href={hrefFor(page + 1)}
           rel="next"
-          className="rounded border border-line px-4 py-2 hover:border-primary hover:text-primary"
+          className="rounded-[7px] border-2 border-ink bg-surface px-4 py-2 text-ink hover:bg-yellow"
         >
           {t("labels.nextPage")} →
         </Link>

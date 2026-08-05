@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { auth, isStaff } from "@/lib/auth";
+import { SITE_NAME } from "@/lib/site";
 import { logoutAction } from "../actions";
 import { AdminLocaleSelect } from "@/components/admin/AdminLocaleSelect";
 
@@ -11,7 +12,7 @@ export default async function ProtectedAdminLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  if (!session?.user) redirect("/admin/login");
+  if (!session?.user || !isStaff(session.user)) redirect("/admin/login");
   const t = await getTranslations("admin");
   const isAdmin = session.user.role === "admin";
   const canManageTaxonomy =
@@ -20,21 +21,28 @@ export default async function ProtectedAdminLayout({
   const nav = [
     { href: "/admin", label: t("nav.dashboard") },
     { href: "/admin/articles", label: t("nav.articles") },
+    { href: "/admin/translations", label: t("nav.translations") },
     ...(canManageTaxonomy
       ? [
+          { href: "/admin/glossary", label: t("nav.glossary") },
+          { href: "/admin/series", label: t("nav.series") },
           { href: "/admin/rss", label: t("nav.rss") },
+          { href: "/admin/moderation", label: t("nav.moderation") },
+          { href: "/admin/prize", label: t("nav.prize") },
+          { href: "/admin/partners", label: t("nav.partners") },
           { href: "/admin/categories", label: t("nav.categories") },
+          { href: "/admin/jobs", label: t("nav.jobs") },
         ]
       : []),
     ...(isAdmin ? [{ href: "/admin/users", label: t("nav.users") }] : []),
   ];
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="admin-ui flex min-h-screen flex-col md:flex-row">
       <aside className="w-full border-b border-line bg-ink text-white md:w-56 md:shrink-0 md:border-b-0">
         <div className="flex items-center justify-between px-4 py-4 md:block">
           <Link href="/admin" className="text-lg font-black text-white">
-            環島新聞網{" "}
+            {SITE_NAME}{" "}
             <span className="text-xs font-medium text-white/60">Admin</span>
           </Link>
         </div>
@@ -55,7 +63,7 @@ export default async function ProtectedAdminLayout({
             <AdminLocaleSelect current={session.user.adminLocale} />
           </div>
           <div className="mt-3 flex flex-col gap-2 text-sm">
-            <Link href="/" className="text-white/70 hover:text-white">
+            <Link href="/en" className="text-white/70 hover:text-white">
               {t("nav.viewSite")}
             </Link>
             <form action={logoutAction}>

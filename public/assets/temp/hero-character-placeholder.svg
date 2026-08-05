@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 440" width="460" height="440" preserveAspectRatio="xMidYMax slice">
+  <!-- TODO: 正式なヒーロービジュアル素材に差し替える。右側ビジュアル領域(object-fit: cover)は維持すること。 -->
+  <!-- 銀髪ファンタジー系キャラクター(仮)。マット単色+輪郭線のみ -->
+  <g stroke="#141d28" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <!-- 後ろ髪(大きな流れ) -->
+    <path d="M118 130 Q70 210 96 320 Q60 350 84 440 L392 440 Q416 340 380 300 Q404 210 340 132 Q300 70 226 72 Q152 74 118 130 Z" fill="#e6e7ef"/>
+    <path d="M96 320 Q140 300 150 250 M380 300 Q330 292 322 240" fill="none" stroke-width="3"/>
+    <!-- 杖 -->
+    <rect x="392" y="150" width="10" height="290" rx="5" fill="#8a6d3d"/>
+    <path d="M397 150 l14 -26 -14 -26 -14 26 Z" fill="#5cc8e8"/>
+    <path d="M397 84 l6 12 -6 12 -6 -12 Z" fill="#fad157" stroke-width="3"/>
+    <!-- 首・肩 -->
+    <path d="M188 306 Q160 330 132 440 L340 440 Q316 328 282 304 Z" fill="#fffdf9"/>
+    <path d="M212 268 h48 v52 q-24 18 -48 0 Z" fill="#f3ddcb"/>
+    <!-- 胸元の装束 -->
+    <path d="M180 320 Q236 352 292 318 L300 440 H172 Z" fill="#273551"/>
+    <path d="M236 330 v110 M204 326 l-8 114 M268 326 l8 114" fill="none" stroke-width="3"/>
+    <path d="M236 344 l10 16 -10 16 -10 -16 Z" fill="#fad157" stroke-width="3"/>
+    <!-- 顔 -->
+    <path d="M162 168 Q158 262 236 276 Q314 262 310 168 Q300 96 236 94 Q172 96 162 168 Z" fill="#f9e7d8"/>
+    <!-- 前髪 -->
+    <path d="M156 190 Q142 108 210 84 Q272 66 316 116 Q338 152 322 196 Q314 150 288 142 Q300 168 292 190 Q276 140 240 136 Q250 160 242 182 Q216 132 186 148 Q194 170 186 194 Q174 166 156 190 Z" fill="#eceded"/>
+    <!-- 三つ編みの冠 -->
+    <path d="M160 150 q18 -14 34 0 q18 -14 34 0 q18 -14 34 0 q18 -14 34 0 q14 -10 24 4" fill="none" stroke-width="5"/>
+    <!-- 耳飾り -->
+    <circle cx="168" cy="222" r="7" fill="#fad157" stroke-width="3"/>
+    <!-- 目 -->
+    <g stroke-width="3.5">
+      <path d="M188 206 q16 -10 32 0 l-2 26 q-14 10 -28 0 Z" fill="#fffdf9"/>
+      <path d="M256 206 q16 -10 32 0 l-2 26 q-14 10 -28 0 Z" fill="#fffdf9"/>
+      <circle cx="204" cy="218" r="9" fill="#8a7bc8"/>
+      <circle cx="272" cy="218" r="9" fill="#8a7bc8"/>
+      <circle cx="201" cy="214" r="3" fill="#fffdf9" stroke="none"/>
+      <circle cx="269" cy="214" r="3" fill="#fffdf9" stroke="none"/>
+    </g>
+    <path d="M186 196 q18 -8 34 -2 M254 194 q18 -6 34 2" fill="none" stroke-width="4"/>
+    <!-- 鼻・口 -->
+    <path d="M236 238 l-3 8" fill="none" stroke-width="3"/>
+    <path d="M226 254 q10 6 20 0" fill="none" stroke-width="3.5"/>
+  </g>
+  <!-- ほお -->
+  <ellipse cx="184" cy="240" rx="10" ry="5" fill="#f4c2b3"/>
+  <ellipse cx="288" cy="240" rx="10" ry="5" fill="#f4c2b3"/>
+</svg>

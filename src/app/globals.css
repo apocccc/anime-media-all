@@ -1,20 +1,54 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/*
+ * デザイントークン(anime_media_pixel_perfect_implementation_spec.md)
+ * - マット単色のみ(グラデーション禁止)
+ * - box-shadow / drop-shadow / text-shadow / backdrop-filter 禁止
+ * - 立体感は太い罫線・色面・余白・重なり・ステッカー風装飾で表現する
+ */
 @theme {
-  /* ブランドカラー (CLAUDE.md §3) */
-  --color-primary: #d7263d;
-  --color-primary-dark: #a61b2e;
-  --color-primary-light: #fbeaec;
-  --color-breaking: #b3001b;
-  --color-ink: #1a1a1a;
-  --color-gray: #6b7280;
-  --color-bg: #ffffff;
-  --color-bg-sub: #f7f7f8;
-  --color-line: #e5e7eb;
+  /* 基本色 */
+  --color-bg: #f8f5f0; /* ページ背景(暖色オフホワイト) */
+  --color-surface: #fffdf9; /* カード面 */
+  --color-bg-sub: #f3ede3; /* 面の弱いパネル */
+  --color-ink: #141d28;
+  --color-ink-soft: #273551;
+  --color-gray: #5c5b60; /* muted */
+  --color-line: #141d28; /* 主要罫線(2px solid で使う) */
+  --color-dash: #a29fa9; /* 1px dashed の区切り線 */
 
-  --font-sans: var(--font-noto-sans-tc), var(--font-inter), "Noto Sans TC",
-    "Inter", system-ui, -apple-system, "PingFang TC", "Microsoft JhengHei",
+  /* アクセント */
+  --color-primary: #eb4e5d; /* coral */
+  --color-primary-dark: #d93d4e;
+  --color-primary-light: #fbe3e1; /* コーラルのマット淡色面 */
+  --color-breaking: #e93a4d; /* coral-strong */
+  --color-coral-light: #f17285;
+  --color-yellow: #fad157;
+  --color-teal: #139a9f;
+  --color-teal-light: #96cab4;
+  --color-purple: #89649b;
+  --color-navy: #141d28;
+  --color-warm-beige: #efd0af;
+  --color-soft-pink: #e6a39b;
+
+  /* 角丸(§24) */
+  --radius-sm: 9px;
+  --radius-md: 13px;
+  --radius-lg: 18px;
+}
+
+/*
+ * フォントは @theme inline で定義する。
+ * next/font の変数(--font-anton 等)は body に付与されるため、
+ * :root で解決される通常の @theme では空になる。
+ */
+@theme inline {
+  --font-sans: var(--font-body), "Inter", "Noto Sans JP", system-ui,
+    -apple-system, sans-serif;
+  --font-display: var(--font-anton), "Arial Black", var(--font-body),
+    sans-serif;
+  --font-heading: var(--font-barlow), "Arial Narrow", var(--font-body),
     sans-serif;
 }
 
@@ -24,8 +58,119 @@ html {
 }
 
 body {
+  min-width: 320px;
   color: var(--color-ink);
   background: var(--color-bg);
+}
+
+/* 影・フィルター全面禁止(§3)。立体感は罫線と色面のみで作る */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  box-shadow: none;
+  filter: none;
+  text-shadow: none;
+  backdrop-filter: none;
+}
+
+/* 管理画面ボタンの押下フィードバック(§12 管理UX)。影は使わず、
+   カーソル・押下時1px沈み・無効時カーソルで「押した感」を出す */
+.admin-ui button:not(:disabled),
+.admin-ui [role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+.admin-ui button:not(:disabled):active {
+  transform: translateY(1px);
+}
+.admin-ui button:disabled {
+  cursor: not-allowed;
+}
+
+/* フォーカスは影ではなく黄色アウトライン(§27) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--color-yellow);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---- コミック風ユーティリティ ---- */
+
+/* 斜体見出しタブ(§18)。内側テキストは .comic-tab > * で逆スキュー */
+.comic-tab {
+  transform: skewX(-8deg);
+}
+.comic-tab > * {
+  display: inline-block;
+  transform: skewX(8deg);
+}
+
+/* 左端ギザギザの黒ステッカー(§16 VIEW ALL RANKINGS) */
+.jagged-left {
+  clip-path: polygon(
+    0 12%,
+    7px 0,
+    100% 0,
+    100% 100%,
+    7px 100%,
+    0 88%,
+    4px 50%
+  );
+}
+
+/* コミック吹き出し(§12 LIVE NOW!)。ギザギザ輪郭の黒ラベル */
+.burst-label {
+  clip-path: polygon(
+    3% 32%,
+    0% 8%,
+    12% 14%,
+    22% 0%,
+    32% 12%,
+    46% 2%,
+    54% 14%,
+    68% 2%,
+    76% 14%,
+    90% 4%,
+    94% 20%,
+    100% 30%,
+    96% 50%,
+    100% 72%,
+    90% 82%,
+    94% 100%,
+    78% 92%,
+    64% 100%,
+    52% 90%,
+    38% 100%,
+    28% 88%,
+    12% 98%,
+    12% 80%,
+    0% 78%,
+    5% 55%
+  );
+}
+
+/* ハーフトーンドット(単色SVGパターン。グラデーション不使用) */
+.halftone {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Ccircle cx='2' cy='2' r='1.5' fill='%23141d28'/%3E%3C/svg%3E");
+  background-size: 10px 10px;
+}
+.halftone--light {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Ccircle cx='2' cy='2' r='1.5' fill='%23fffdf9'/%3E%3C/svg%3E");
+  background-size: 10px 10px;
 }
 
 /* 記事本文 (17px / 行間1.8, セマンティックHTML前提) */
@@ -40,11 +185,11 @@ body {
 
 .article-body h2 {
   font-size: 1.35em;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.4;
   margin-top: 2em;
   padding-left: 0.6em;
-  border-left: 4px solid var(--color-primary);
+  border-left: 6px solid var(--color-primary);
 }
 
 .article-body h3 {
@@ -65,7 +210,7 @@ body {
 }
 
 .article-body blockquote {
-  border-left: 3px solid var(--color-line);
+  border-left: 3px solid var(--color-dash);
   padding-left: 1em;
   color: var(--color-gray);
 }
@@ -87,7 +232,8 @@ body {
 .article-body img {
   max-width: 100%;
   height: auto;
-  border-radius: 6px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
 }
 
 .article-body figcaption {
@@ -104,7 +250,7 @@ body {
 
 .article-body th,
 .article-body td {
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--color-ink);
   padding: 0.5em 0.75em;
   text-align: left;
 }
@@ -116,7 +262,7 @@ body {
 
 .article-body hr {
   border: none;
-  border-top: 1px solid var(--color-line);
+  border-top: 1px dashed var(--color-dash);
   margin: 2em 0;
 }
 
@@ -155,7 +301,7 @@ body {
 }
 
 .tiptap-editor .tiptap blockquote {
-  border-left: 3px solid var(--color-line);
+  border-left: 3px solid var(--color-dash);
   padding-left: 1em;
   color: var(--color-gray);
 }
@@ -182,6 +328,6 @@ body {
 
 .tiptap-editor .tiptap th,
 .tiptap-editor .tiptap td {
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--color-dash);
   padding: 0.4em 0.6em;
 }

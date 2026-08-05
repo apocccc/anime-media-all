@@ -10,10 +10,27 @@ const nextConfig: NextConfig = {
     // これにより /_next/image が任意URLのプロキシになる抜け道も塞がる。
     unoptimized: true,
   },
+  async rewrites() {
+    return [
+      // ロケール別 Googleニュースサイトマップ(/news-sitemap-{locale}.xml)
+      {
+        source: "/news-sitemap-:locale.xml",
+        destination: "/news-sitemaps/:locale",
+      },
+    ];
+  },
   async headers() {
     return [
       {
         source: "/admin/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
+        source: "/partner/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
+        source: "/my/:path*",
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
     ];

@@ -1,9 +1,9 @@
-import { TAIPEI_TZ } from "@/lib/site";
+import { TOKYO_TZ } from "@/lib/site";
 
-/** 台北時間基準の yyyymmdd */
+/** 東京時間基準の yyyymmdd(記事URLの日付部分は Asia/Tokyo の公開日) */
 export function dateStamp(date = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: TAIPEI_TZ,
+    timeZone: TOKYO_TZ,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -11,7 +11,10 @@ export function dateStamp(date = new Date()): string {
   return parts.replace(/-/g, "");
 }
 
-/** 英数字ベースの短いスラッグへ正規化(小文字・ハイフン区切り、中文は除去) */
+/**
+ * 英語ベースの短いスラッグへ正規化(小文字・ハイフン区切り)。
+ * スラッグはロケール非依存(全言語で同一)。非ASCII文字は除去する。
+ */
 export function slugify(input: string): string {
   return input
     .toLowerCase()
@@ -19,10 +22,11 @@ export function slugify(input: string): string {
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
+    .slice(0, 60)
+    .replace(/-+$/g, "");
 }
 
-/** `{yyyymmdd}-{slug}` 形式の記事スラッグを生成 */
+/** `{yyyymmdd}-{英語ベースの短いスラッグ}` 形式の記事スラッグを生成 */
 export function articleSlug(base: string, date = new Date()): string {
   const s = slugify(base);
   return `${dateStamp(date)}-${s || "article"}`;
@@ -31,4 +35,9 @@ export function articleSlug(base: string, date = new Date()): string {
 /** スラッグ形式のバリデーション */
 export function isValidArticleSlug(slug: string): boolean {
   return /^\d{8}-[a-z0-9][a-z0-9-]*$/.test(slug);
+}
+
+/** 作品スラッグ(ローマ字・ヘボン式・マクロン無し)のバリデーション */
+export function isValidSeriesSlug(slug: string): boolean {
+  return /^[a-z0-9][a-z0-9-]*$/.test(slug);
 }

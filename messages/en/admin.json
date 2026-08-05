@@ -1,6 +1,6 @@
 {
   "admin": {
-    "title": "Huandao News Admin",
+    "title": "Admin",
     "nav": {
       "dashboard": "Dashboard",
       "articles": "Articles",
@@ -12,7 +12,14 @@
       "redirects": "Redirects",
       "settings": "Settings",
       "viewSite": "View site",
-      "signOut": "Sign out"
+      "signOut": "Sign out",
+      "translations": "Translation Queue",
+      "glossary": "Glossary",
+      "series": "Series",
+      "moderation": "Moderation",
+      "prize": "Prize",
+      "partners": "Partners",
+      "jobs": "Jobs"
     },
     "login": {
       "title": "Sign in to Admin",
@@ -31,7 +38,13 @@
       "reviewQueue": "Review queue",
       "recentDrafts": "Recent drafts",
       "views": "Views",
-      "empty": "No data"
+      "empty": "No data",
+      "translationQueue": "Translation queue",
+      "needsReview": "Needs review",
+      "pendingTerms": "Pending terms",
+      "moderationQueue": "Moderation queue",
+      "partnerQueue": "Partner reviews",
+      "failedJobs": "Failed jobs"
     },
     "articles": {
       "title": "Articles",
@@ -43,7 +56,11 @@
       "kinds": {
         "rewritten": "Rewritten",
         "rssRaw": "RSS (not rewritten)",
-        "manual": "Original"
+        "manual": "Original",
+        "editorial": "Editorial",
+        "ai_generated": "AI generated",
+        "press_release": "Press release",
+        "raw": "RSS (unprocessed)"
       },
       "all": "All",
       "columns": {
@@ -52,10 +69,12 @@
         "category": "Category",
         "author": "Author",
         "publishedAt": "Published",
-        "updatedAt": "Updated"
+        "updatedAt": "Updated",
+        "locales": "Translations"
       },
       "empty": "No matching articles",
-      "untitled": "(untitled)"
+      "untitled": "(untitled)",
+      "runGenerate": "Run AI generation"
     },
     "bulk": {
       "label": "Bulk actions",
@@ -64,7 +83,8 @@
       "archive": "Unpublish",
       "apply": "Apply",
       "selectAll": "Select all",
-      "hint": "Check articles, then apply. Drafts, in-review and scheduled articles can be published instantly (raw RSS imports are never published by bulk actions, except press releases)"
+      "hint": "Check articles, then apply. Drafts, in-review and scheduled articles can be published instantly (raw RSS imports are never published by bulk actions, except press releases)",
+      "queueTranslations": "Queue translations"
     },
     "status": {
       "draft": "Draft",
@@ -83,7 +103,6 @@
       "tagsLabel": "Tags (comma separated)",
       "heroImage": "Hero image",
       "heroImageAlt": "Hero image alt text",
-      "prSourceName": "Press release source",
       "isBreaking": "Breaking",
       "isPinned": "Pinned",
       "publishAt": "Scheduled publish time",
@@ -92,6 +111,8 @@
       "saving": "Saving…",
       "publish": "Publish",
       "unpublish": "Unpublish",
+      "rejectPr": "Reject PR",
+      "rejectPrConfirm": "This will unpublish (reject) this press release and the article generated from it. Continue?",
       "submitReview": "Submit for review",
       "backToDraft": "Back to draft",
       "preview": "Preview",
@@ -113,6 +134,8 @@
       "category": "Import category",
       "autoPublish": "Auto-publish",
       "autoPublishHint": "Checked = publish immediately without review / Unchecked = imported as \"In review\" and published after approval",
+      "isPressRelease": "Press-release source",
+      "isPressReleaseHint": "Checked = imported items are reproduced verbatim in Press Releases (published immediately), then AI turns each into an independent article sorted into the right category (e.g. apocwire)",
       "fetchLimit": "Items per fetch",
       "enabled": "Enabled",
       "pipelineHint": "Imports into regular categories are held as drafts; every day at 8:00 JST the AI rewrites up to 5 per category as original stories, released at a random time between 8:30 and 9:30. Press releases are reprinted without limit, plus up to 5 are rewritten into the most fitting category.",
@@ -148,8 +171,6 @@
     },
     "categories": {
       "title": "Categories",
-      "nameZh": "Chinese name",
-      "nameEn": "English name",
       "slug": "Slug",
       "order": "Order",
       "visible": "Visible",
@@ -174,6 +195,249 @@
       "loading": "Loading…",
       "error": "Something went wrong. Please try again.",
       "language": "Interface language"
+    },
+    "translationStatus": {
+      "pending": "Pending",
+      "machine": "Machine",
+      "needs_review": "Needs review",
+      "approved": "Approved",
+      "failed": "Failed",
+      "excluded": "Excluded"
+    },
+    "translation": {
+      "masterBadge": "Master (ja)",
+      "approve": "Approve",
+      "retranslate": "Retranslate",
+      "exclude": "Exclude this locale",
+      "include": "Un-exclude",
+      "queueAll": "Translate to all locales",
+      "queued": "Retranslation queued",
+      "queuedAll": "Queued translations for all locales",
+      "excludedNote": "This locale is excluded — the article does not exist here (lists, sitemap, feeds)."
+    },
+    "glossary": {
+      "title": "Glossary",
+      "pendingCount": "{count} pending",
+      "searchPlaceholder": "Search ja / forms / aliases",
+      "allStatuses": "All statuses",
+      "allTypes": "All types",
+      "status": {
+        "pending": "Pending",
+        "verified": "Verified",
+        "locked": "Locked",
+        "deprecated": "Deprecated"
+      },
+      "type": {
+        "series": "Series",
+        "character": "Character",
+        "person": "Person",
+        "studio": "Studio",
+        "company": "Company",
+        "event": "Event",
+        "product": "Product",
+        "music": "Music",
+        "term": "Term"
+      },
+      "bulkVerify": "Verify selected",
+      "bulkHint": "Marks selected pending terms as verified",
+      "doNotTranslate": "Keep original",
+      "source": "Source",
+      "aliases": "Aliases",
+      "edit": "Edit",
+      "save": "Save",
+      "add": "Add term",
+      "delete": "Delete"
+    },
+    "series": {
+      "title": "Series",
+      "counts": "{articles} articles / {fans} posts",
+      "edit": "Edit",
+      "save": "Save",
+      "add": "Add series",
+      "delete": "Delete"
+    },
+    "translations": {
+      "title": "Translation Queue",
+      "needsReview": "Needs review",
+      "machine": "Machine (unapproved)",
+      "bulkApprove": "Approve selected",
+      "empty": "No translations found",
+      "columns": {
+        "article": "Article",
+        "locale": "Locale",
+        "translatedTitle": "Translated title",
+        "updatedAt": "Updated"
+      }
+    },
+    "moderation": {
+      "title": "Moderation",
+      "empty": "No posts awaiting review",
+      "reasonPlaceholder": "Rejection reason (sent to author)",
+      "approve": "Approve",
+      "reject": "Reject",
+      "auditLog": "Audit log"
+    },
+    "prize": {
+      "title": "Weekly Prize",
+      "cycles": "Cycles",
+      "empty": "No cycles",
+      "votes": "{count} votes",
+      "decide": "Decide winner",
+      "noVotes": "No votes yet",
+      "awards": "Awards",
+      "sent": "Sent",
+      "save": "Save",
+      "catalog": "Reward catalog (region → reward)",
+      "active": "Active",
+      "add": "Add",
+      "columns": {
+        "week": "Week",
+        "winner": "Winner",
+        "reward": "Reward",
+        "code": "Code",
+        "status": "Status"
+      }
+    },
+    "partners": {
+      "title": "Partners",
+      "empty": "No organizations yet",
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "suspended": "Suspended"
+      },
+      "trusted": "Trusted (auto-publish)",
+      "prCount": "{count} PRs",
+      "noMembers": "No members",
+      "approve": "Approve",
+      "suspend": "Suspend",
+      "trust": "Mark trusted",
+      "untrust": "Remove trust"
+    },
+    "jobs": {
+      "title": "Job Queue",
+      "active": "Active + failed",
+      "empty": "No jobs",
+      "columns": {
+        "type": "Type",
+        "payload": "Payload",
+        "status": "Status",
+        "attempts": "Attempts",
+        "error": "Error"
+      }
+    }
+  },
+  "partner": {
+    "title": "Partner Portal",
+    "intro": "Submit and distribute press releases. Accounts are reviewed by our team before activation.",
+    "login": "Sign in",
+    "register": "Register",
+    "loginError": "Invalid email or password",
+    "noOrganization": "No organization found for this account. Please contact us.",
+    "orgStatus": {
+      "pending": "Under review",
+      "approved": "Approved",
+      "suspended": "Suspended"
+    },
+    "trusted": "Trusted (instant publish)",
+    "publicPage": "Public company page",
+    "pendingNotice": "Your account is under review. You can submit press releases once approved.",
+    "suspendedNotice": "This account is suspended. Please contact us.",
+    "myReleases": "Your press releases",
+    "empty": "No submissions yet",
+    "status": {
+      "draft": "Draft",
+      "review": "In editorial review",
+      "scheduled": "Scheduled",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "submit": {
+      "title": "Submit a press release",
+      "titleLabel": "Title",
+      "leadLabel": "Lead",
+      "bodyLabel": "Body",
+      "bodyPlaceholder": "Separate paragraphs with a blank line. Lines starting with \"## \" become headings.",
+      "originalLocale": "Original language",
+      "embargo": "Embargo (optional)",
+      "translationOption": "Translation option",
+      "translateAll": "AI-translate to all languages (default)",
+      "translateNone": "No translation (publish in original language only)",
+      "translateCustom": "Choose languages",
+      "contact": "Contact",
+      "submitButton": "Submit",
+      "submitted": "Submitted. It will be published after editorial review.",
+      "errors": {
+        "unauthorized": "Sign-in required",
+        "turnstile": "Verification failed. Please try again.",
+        "org_not_approved": "Your organization is not approved yet",
+        "invalid": "Please check your input",
+        "no_category": "System error (missing category)"
+      }
+    },
+    "registerForm": {
+      "title": "Register a business account",
+      "note": "Submissions are enabled after review and approval by our team.",
+      "companyName": "Company name",
+      "websiteUrl": "Company website",
+      "contactName": "Contact name",
+      "email": "Email",
+      "emailNote": "A company-domain email is recommended (verified during review)",
+      "password": "Password (8+ chars)",
+      "submit": "Register",
+      "errors": {
+        "turnstile": "Verification failed",
+        "invalid": "Please check your input",
+        "email_taken": "This email is already in use"
+      }
+    }
+  },
+  "my": {
+    "title": "My Page",
+    "signInPrompt": "Sign in to post and vote (Google / X / Discord)",
+    "signIn": "Sign in",
+    "newPost": "New post",
+    "moderationNote": "All posts are reviewed before publication. Official images and anime screenshots are not allowed (embeds excepted).",
+    "myPosts": "Your posts",
+    "empty": "No posts yet",
+    "status": {
+      "pending": "In review",
+      "approved": "Published",
+      "rejected": "Rejected",
+      "hidden": "Hidden"
+    },
+    "form": {
+      "series": "Series (required)",
+      "type": "Post type",
+      "types": {
+        "illustration": "Illustration",
+        "cosplay": "Cosplay",
+        "photo": "Photo (merch / pilgrimage)",
+        "text": "Text",
+        "embed": "Social embed"
+      },
+      "images": "Images (up to 4)",
+      "imagesNote": "Your own work only. Official images and screenshots are prohibited.",
+      "embedUrl": "Embed URL",
+      "embedNote": "Public post URL from X / Instagram / TikTok / YouTube",
+      "body": "Body / caption",
+      "language": "Language",
+      "birthMonth": "Birth month (age check)",
+      "terms": "I confirm this is my own work, does not infringe third-party rights, and I agree to the terms including a non-exclusive license with attribution.",
+      "submit": "Submit",
+      "submitted": "Submitted. It will appear after review.",
+      "errors": {
+        "unauthenticated": "Sign-in required",
+        "turnstile": "Verification failed",
+        "invalid": "Please check your input",
+        "birth_month_required": "Please enter your birth month",
+        "underage": "You do not meet the minimum age in our terms",
+        "series_not_found": "Please choose a series",
+        "embed_url_required": "Embed URL is required",
+        "body_required": "Body is required",
+        "media_required": "Please upload an image",
+        "embed_host_not_allowed": "Embed source not supported"
+      }
     }
   }
 }

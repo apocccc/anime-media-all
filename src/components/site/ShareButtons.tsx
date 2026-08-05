@@ -16,26 +16,28 @@ export async function ShareButtons({
     {
       name: "X",
       href: `https://twitter.com/intent/tweet?url=${u}&text=${text}`,
-      bg: "bg-ink",
+      bg: "bg-ink hover:bg-ink-soft",
       label: "X",
     },
     {
       name: "Facebook",
       href: `https://www.facebook.com/sharer/sharer.php?u=${u}`,
-      bg: "bg-[#1877F2]",
+      bg: "bg-[#1877F2] hover:bg-[#0d5fce]",
       label: "f",
     },
     {
       name: "LINE",
       href: `https://social-plugins.line.me/lineit/share?url=${u}`,
-      bg: "bg-[#06C755]",
+      bg: "bg-[#06C755] hover:bg-[#05a648]",
       label: "LINE",
     },
   ];
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs font-bold text-gray">{t("labels.share")}</span>
+      <span className="font-heading text-[11px] font-extrabold uppercase text-gray">
+        {t("labels.share")}
+      </span>
       {items.map((item) => (
         <a
           key={item.name}
@@ -43,7 +45,7 @@ export async function ShareButtons({
           target="_blank"
           rel="noopener noreferrer"
           aria-label={item.name}
-          className={`flex h-7 items-center justify-center rounded-sm px-2.5 text-[11px] font-black text-white opacity-90 hover:opacity-100 ${item.bg}`}
+          className={`flex h-[26px] items-center justify-center rounded-[4px] border-2 border-ink px-2.5 font-heading text-[11px] font-extrabold uppercase text-white ${item.bg}`}
         >
           {item.label}
         </a>

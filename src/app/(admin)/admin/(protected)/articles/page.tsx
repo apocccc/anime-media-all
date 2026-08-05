@@ -2,9 +2,10 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { bulkStatusAction, createArticleAction } from "../../actions";
+import { bulkStatusAction, createArticleAction, runGenerateAction } from "../../actions";
 import { SelectAllCheckbox } from "@/components/admin/SelectAllCheckbox";
-import type { ArticleStatus, Prisma } from "@prisma/client";
+import { fromDbLocale, PUBLIC_DB_LOCALES } from "@/lib/locale";
+import type { ArticleKind, ArticleStatus, Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,16 @@ const STATUS_STYLES: Record<ArticleStatus, string> = {
   archived: "bg-gray-200 text-gray-600",
 };
 
-const KINDS = ["rewritten", "rssRaw", "manual"] as const;
+const TR_STATUS_DOT: Record<string, string> = {
+  pending: "bg-gray-300",
+  machine: "bg-blue-400",
+  needs_review: "bg-amber-400",
+  approved: "bg-green-500",
+  failed: "bg-red-500",
+  excluded: "bg-gray-500",
+};
+
+const KINDS: ArticleKind[] = ["editorial", "ai_generated", "press_release"];
 
 export default async function ArticlesPage({
   searchParams,
@@ -43,18 +53,33 @@ export default async function ArticlesPage({
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
   const perPage = 25;
 
+  // RSS取り込み直後の「未加工(AI未編集)」記事 = ai_generated かつ フィード由来
+  // かつ ja マスターが pending(まだ独自記事化されていない生ソース)。
+  // 一覧では既定で隠し、原文が出るのはプレスリリースと、AIで編集済みの記事のみにする。
+  // 「種別: RSS未加工」を選んだ時だけ、この生ソースを確認できる。
+  const RAW_IMPORT: Prisma.ArticleWhereInput = {
+    kind: "ai_generated",
+    sourceFeedId: { not: null },
+    translations: { some: { locale: "ja", status: "pending" } },
+  };
+
   const where: Prisma.ArticleWhereInput = {
     ...(status && STATUSES.includes(status as ArticleStatus)
       ? { status: status as ArticleStatus }
       : {}),
     ...(category ? { category: { is: { slug: category } } } : {}),
-    // 種別: 独自化済み / RSS取り込みのみ(未独自化) / 通常記事
-    ...(kind === "rewritten" ? { isRewritten: true } : {}),
-    ...(kind === "rssRaw"
-      ? { sourceFeedId: { not: null }, isRewritten: false }
+    ...(kind && KINDS.includes(kind as ArticleKind)
+      ? { kind: kind as ArticleKind }
       : {}),
-    ...(kind === "manual" ? { sourceFeedId: null } : {}),
-    ...(q ? { title: { contains: q, mode: "insensitive" } } : {}),
+    ...(q
+      ? {
+          translations: {
+            some: { title: { contains: q, mode: "insensitive" } },
+          },
+        }
+      : {}),
+    // 種別=RSS未加工(raw)なら生ソースのみ、それ以外は生ソースを除外
+    ...(kind === "raw" ? RAW_IMPORT : { NOT: RAW_IMPORT }),
     // contributor/author は自分の記事のみ
     ...(session?.user.role === "admin" || session?.user.role === "editor"
       ? {}
@@ -68,34 +93,59 @@ export default async function ArticlesPage({
       skip: (page - 1) * perPage,
       take: perPage,
       include: {
-        category: true,
+        category: { include: { translations: true } },
         author: { select: { name: true } },
+        translations: { select: { locale: true, status: true, title: true } },
+        sources: { where: { isPrimary: true } },
       },
     }),
     prisma.article.count({ where }),
-    prisma.category.findMany({ orderBy: { order: "asc" } }),
+    prisma.category.findMany({
+      orderBy: { order: "asc" },
+      include: { translations: true },
+    }),
   ]);
 
-  const fmt = new Intl.DateTimeFormat("zh-TW", {
-    timeZone: "Asia/Taipei",
+  const fmt = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
   });
 
+  const categoryLabel = (c: (typeof categories)[number]) =>
+    c.translations.find((x) => x.locale === "ja")?.name ??
+    c.translations.find((x) => x.locale === "en")?.name ??
+    c.slug;
+
   return (
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-black">{t("articles.title")}</h1>
-        <form action={createArticleAction}>
-          <button
-            type="submit"
-            className="rounded bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-primary-dark"
+        <div className="flex gap-2">
+          <form
+            action={async () => {
+              "use server";
+              await runGenerateAction();
+            }}
           >
-            + {t("articles.new")}
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="rounded border border-line bg-bg px-4 py-2 text-sm font-bold hover:border-primary hover:text-primary"
+            >
+              ✦ {t("articles.runGenerate")}
+            </button>
+          </form>
+          <form action={createArticleAction}>
+            <button
+              type="submit"
+              className="rounded bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-primary-dark"
+            >
+              + {t("articles.new")}
+            </button>
+          </form>
+        </div>
       </div>
 
       <form
@@ -126,7 +176,7 @@ export default async function ArticlesPage({
           </option>
           {categories.map((c) => (
             <option key={c.id} value={c.slug}>
-              {c.nameZh}
+              {categoryLabel(c)}
             </option>
           ))}
         </select>
@@ -143,6 +193,7 @@ export default async function ArticlesPage({
               {t(`articles.kinds.${k}`)}
             </option>
           ))}
+          <option value="raw">{t("articles.kinds.raw")}</option>
         </select>
         <input
           type="search"
@@ -171,6 +222,7 @@ export default async function ArticlesPage({
             <option value="publish">{t("bulk.publish")}</option>
             <option value="draft">{t("bulk.toDraft")}</option>
             <option value="archive">{t("bulk.archive")}</option>
+            <option value="queueTranslations">{t("bulk.queueTranslations")}</option>
           </select>
           <button
             type="submit"
@@ -182,73 +234,97 @@ export default async function ArticlesPage({
         </div>
 
         <div className="mt-3 overflow-x-auto rounded-lg border border-line bg-bg">
-          <table className="w-full min-w-[640px] text-sm">
+          <table className="w-full min-w-[760px] text-sm">
             <thead>
               <tr className="border-b border-line bg-bg-sub text-left text-xs text-gray">
                 <th className="w-8 px-3 py-2.5">
                   <SelectAllCheckbox label={t("bulk.selectAll")} />
                 </th>
                 <th className="px-4 py-2.5 font-medium">{t("articles.columns.title")}</th>
-              <th className="px-4 py-2.5 font-medium">{t("articles.columns.status")}</th>
-              <th className="px-4 py-2.5 font-medium">{t("articles.columns.category")}</th>
-              <th className="px-4 py-2.5 font-medium">{t("articles.columns.author")}</th>
-              <th className="px-4 py-2.5 font-medium">{t("articles.columns.updatedAt")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
-            {articles.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-gray">
-                  {t("articles.empty")}
-                </td>
+                <th className="px-4 py-2.5 font-medium">{t("articles.columns.status")}</th>
+                <th className="px-4 py-2.5 font-medium">{t("articles.columns.locales")}</th>
+                <th className="px-4 py-2.5 font-medium">{t("articles.columns.category")}</th>
+                <th className="px-4 py-2.5 font-medium">{t("articles.columns.updatedAt")}</th>
               </tr>
-            ) : (
-              articles.map((a) => (
-                <tr key={a.id} className="hover:bg-bg-sub/60">
-                  <td className="px-3 py-2.5">
-                    <input type="checkbox" name="ids" value={a.id} aria-label={a.title} />
+            </thead>
+            <tbody className="divide-y divide-line">
+              {articles.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-gray">
+                    {t("articles.empty")}
                   </td>
-                  <td className="px-4 py-2.5">
-                    <Link
-                      href={`/admin/articles/${a.id}`}
-                      className="font-medium hover:text-primary"
-                    >
-                      {a.sourceFeedId || a.sourceName ? (
-                        <span
-                          className="mr-1.5 inline-block rounded-sm bg-amber-100 px-1.5 py-0.5 align-middle text-[10px] font-black text-amber-800"
-                          title={a.sourceName ?? undefined}
-                        >
-                          {t("rewrite.rssBadge")}
-                        </span>
-                      ) : null}
-                      {a.isRewritten ? (
-                        <span className="mr-1.5 inline-block rounded-sm bg-green-100 px-1.5 py-0.5 align-middle text-[10px] font-black text-green-800">
-                          {t("rewrite.rewrittenBadge")}
-                        </span>
-                      ) : null}
-                      {a.title || t("articles.untitled")}
-                    </Link>
-                    {a.sourceName ? (
-                      <span className="ml-1.5 text-xs text-gray">
-                        {a.sourceName}
-                      </span>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <span
-                      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[a.status]}`}
-                    >
-                      {t(`status.${a.status}`)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5 text-gray">{a.category.nameZh}</td>
-                  <td className="px-4 py-2.5 text-gray">{a.author.name}</td>
-                  <td className="px-4 py-2.5 text-gray">{fmt.format(a.updatedAt)}</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                articles.map((a) => {
+                  const master =
+                    a.translations.find((x) => x.locale === "ja") ??
+                    a.translations[0];
+                  return (
+                    <tr key={a.id} className="hover:bg-bg-sub/60">
+                      <td className="px-3 py-2.5">
+                        <input
+                          type="checkbox"
+                          name="ids"
+                          value={a.id}
+                          aria-label={master?.title ?? a.slug}
+                        />
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <Link
+                          href={`/admin/articles/${a.id}`}
+                          className="font-medium hover:text-primary"
+                        >
+                          {a.sourceFeedId ? (
+                            <span
+                              className="mr-1.5 inline-block rounded-sm bg-amber-100 px-1.5 py-0.5 align-middle text-[10px] font-black text-amber-800"
+                              title={a.sources[0]?.name}
+                            >
+                              RSS
+                            </span>
+                          ) : null}
+                          {a.kind === "press_release" ? (
+                            <span className="mr-1.5 inline-block rounded-sm bg-purple-100 px-1.5 py-0.5 align-middle text-[10px] font-black text-purple-800">
+                              PR
+                            </span>
+                          ) : null}
+                          {master?.title || t("articles.untitled")}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span
+                          className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[a.status]}`}
+                        >
+                          {t(`status.${a.status}`)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-1">
+                          {PUBLIC_DB_LOCALES.map((l) => {
+                            const tr = a.translations.find(
+                              (x) => x.locale === l
+                            );
+                            return (
+                              <span
+                                key={l}
+                                title={`${fromDbLocale(l)}: ${tr?.status ?? "pending"}`}
+                                className={`inline-block h-2.5 w-2.5 rounded-full ${TR_STATUS_DOT[tr?.status ?? "pending"]}`}
+                              />
+                            );
+                          })}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-gray">
+                        {categoryLabel(a.category)}
+                      </td>
+                      <td className="px-4 py-2.5 text-gray">
+                        {fmt.format(a.updatedAt)}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </form>
 

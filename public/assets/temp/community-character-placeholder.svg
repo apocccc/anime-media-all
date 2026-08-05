@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 235" width="220" height="235" preserveAspectRatio="xMaxYMax meet">
+  <!-- TODO: 正式なコミュニティ枠キャラクター素材に差し替える。右下 220 × 235 pxの表示領域は維持すること。 -->
+  <!-- ピンク髪キャラクター(仮)。マット単色+輪郭線のみ -->
+  <g stroke="#141d28" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+    <!-- 後ろ髪 -->
+    <path d="M52 96 Q28 150 44 235 L196 235 Q212 150 186 98 Q170 40 118 40 Q66 42 52 96 Z" fill="#f17285"/>
+    <path d="M44 200 q20 -6 26 -28 M196 200 q-20 -8 -24 -30" fill="none" stroke-width="3"/>
+    <!-- 体(パーカー) -->
+    <path d="M76 190 Q70 206 66 235 L174 235 Q170 204 162 190 Q120 214 76 190 Z" fill="#fffdf9"/>
+    <path d="M120 196 v39" fill="none" stroke-width="3"/>
+    <!-- ピースの手 -->
+    <path d="M170 150 q22 -4 26 -22 l8 4 q-2 26 -30 34 Z" fill="#f9e0cd"/>
+    <path d="M196 130 l6 -22 8 3 -5 21 M204 132 l12 -18 7 5 -12 17" fill="#f9e0cd" stroke-width="3"/>
+    <!-- 顔 -->
+    <path d="M70 118 Q68 178 120 188 Q172 178 170 118 Q164 66 120 66 Q76 66 70 118 Z" fill="#f9e7d8"/>
+    <!-- 前髪 -->
+    <path d="M66 128 Q58 70 110 56 Q160 46 176 96 Q182 116 176 132 Q168 100 148 96 Q156 116 150 130 Q138 96 112 96 Q118 116 110 130 Q96 98 78 106 Q82 120 76 134 Z" fill="#f48fa4"/>
+    <!-- ヘッドホン -->
+    <path d="M62 108 Q60 54 120 52 Q180 54 178 108" fill="none" stroke-width="8"/>
+    <rect x="52" y="102" width="22" height="34" rx="9" fill="#eb4e5d"/>
+    <rect x="166" y="102" width="22" height="34" rx="9" fill="#eb4e5d"/>
+    <!-- ネコミミアクセント -->
+    <path d="M78 62 L70 36 L96 48 Z" fill="#eb4e5d"/>
+    <path d="M162 62 L170 36 L144 48 Z" fill="#eb4e5d"/>
+    <!-- 目(ウインク) -->
+    <g stroke-width="3">
+      <path d="M92 128 q12 -8 24 0 l-2 20 q-10 8 -20 0 Z" fill="#fffdf9"/>
+      <circle cx="104" cy="138" r="7" fill="#8a5c3b"/>
+      <circle cx="102" cy="135" r="2.5" fill="#fffdf9" stroke="none"/>
+      <path d="M138 136 q10 -8 20 0" fill="none" stroke-width="4"/>
+    </g>
+    <path d="M90 120 q14 -6 26 -2 M136 118 q12 -4 24 2" fill="none" stroke-width="3.5"/>
+    <!-- 口(にこっ) -->
+    <path d="M112 162 q10 10 22 2" fill="none" stroke-width="3.5"/>
+  </g>
+  <!-- ほお -->
+  <ellipse cx="88" cy="150" rx="8" ry="4.5" fill="#f4b3ad"/>
+  <ellipse cx="152" cy="150" rx="8" ry="4.5" fill="#f4b3ad"/>
+  <!-- 星 -->
+  <path d="M196 60 l4 8 9 1.4 -6.5 6.3 1.5 9 -8 -4.4 -8 4.4 1.5 -9 -6.5 -6.3 9 -1.4 Z" fill="#fad157" stroke="#141d28" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>

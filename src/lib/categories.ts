@@ -1,6 +1,19 @@
-import type { Category } from "@prisma/client";
+import type { Category, CategoryTranslation } from "@prisma/client";
+import { toDbLocale } from "@/lib/locale";
 
-/** カテゴリー表示名はUI言語に追従する(記事本文は常に繁体字) */
-export function categoryName(category: Category, locale: string): string {
-  return locale === "en" ? category.nameEn : category.nameZh;
+export type CategoryWithTranslations = Category & {
+  translations: CategoryTranslation[];
+};
+
+/** カテゴリー表示名: 当該ロケール → en → slug の順でフォールバック */
+export function categoryName(
+  category: CategoryWithTranslations,
+  locale: string
+): string {
+  const db = toDbLocale(locale);
+  return (
+    category.translations.find((t) => t.locale === db)?.name ??
+    category.translations.find((t) => t.locale === "en")?.name ??
+    category.slug
+  );
 }

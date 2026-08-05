@@ -1,45 +1,51 @@
 {
   "site": {
-    "name": "環島新聞網",
-    "tagline": "掌握台灣脈動,環島即時新聞",
-    "description": "環島新聞網是面向台灣讀者的綜合新聞與生活資訊網站,提供政治、社會、財經、科技、生活等即時報導。"
+    "name": "Anime Relay",
+    "tagline": "用你的語言看日本動畫新聞",
+    "description": "以最快速度、精準地用繁體中文傳遞日本動畫、漫畫、遊戲與 IP 新聞,並提供各作品的粉絲社群。"
   },
   "nav": {
     "home": "首頁",
     "search": "搜尋",
     "menu": "選單",
-    "allCategories": "全部分類"
+    "allCategories": "全部分類",
+    "fans": "粉絲投稿",
+    "prize": "每週獎賞"
   },
   "labels": {
     "breaking": "快訊",
     "pinned": "焦點",
     "ranking": "熱門排行",
     "latestNews": "最新新聞",
-    "topStories": "焦點新聞",
+    "topStories": "頭條",
     "relatedArticles": "相關報導",
-    "pressRelease": "新聞稿",
-    "pressReleaseNotice": "本文為企業/機構提供之新聞稿,內容由提供單位負責。",
-    "prSource": "發布單位",
-    "sourceFrom": "本文轉載自",
+    "pressRelease": "PR / 新聞稿",
+    "pressReleaseNotice": "本文為下列企業提供之新聞稿,內容由該企業負責。",
+    "prSource": "提供",
+    "sourceFrom": "出處",
+    "sources": "出處",
     "prProvidedBy": "新聞稿提供",
-    "originalArticle": "原文連結",
-    "imageSource": "圖片來源",
-    "byAuthor": "記者",
-    "publishedAt": "發布時間",
-    "updatedAt": "更新時間",
+    "originalArticle": "原文報導",
+    "imageSource": "圖片出處",
+    "byAuthor": "撰文",
+    "publishedAt": "發布",
+    "updatedAt": "更新",
     "tags": "標籤",
     "share": "分享",
-    "readMore": "更多報導",
-    "viewAll": "看更多",
-    "noArticles": "目前沒有文章。",
+    "readMore": "閱讀更多",
+    "viewAll": "查看全部",
+    "noArticles": "目前還沒有文章。",
     "page": "第 {page} 頁",
     "prevPage": "上一頁",
     "nextPage": "下一頁",
-    "articleCount": "{count} 篇文章"
+    "articleCount": "{count} 篇文章",
+    "machineTranslated": "本文為自動翻譯,以日文原文為準。",
+    "relatedSeries": "相關作品",
+    "spoiler": "劇透 — 點擊顯示"
   },
   "search": {
     "title": "搜尋",
-    "placeholder": "搜尋新聞…",
+    "placeholder": "搜尋動畫新聞…",
     "resultsFor": "「{query}」的搜尋結果",
     "noResults": "找不到符合「{query}」的文章。",
     "button": "搜尋"
@@ -50,31 +56,133 @@
   "tag": {
     "articlesTagged": "標籤:{tag}"
   },
+  "series": {
+    "title": "作品",
+    "newsTab": "新聞",
+    "fansTab": "粉絲投稿",
+    "infoTab": "作品資訊",
+    "officialSite": "官方網站",
+    "officialLinks": "官方連結",
+    "broadcast": "播出資訊",
+    "episodes": "話數",
+    "season": "季度",
+    "streaming": "串流平台",
+    "latestNews": "{title} 最新新聞",
+    "fanPostsFor": "{title} 的粉絲投稿",
+    "viewAllFans": "查看全部粉絲投稿",
+    "noFanPosts": "這部作品還沒有粉絲投稿,快來搶頭香!",
+    "postAbout": "投稿這部作品"
+  },
+  "fans": {
+    "title": "粉絲投稿",
+    "latest": "最新",
+    "popular": "人氣",
+    "bySeries": "依作品",
+    "postDetail": "粉絲投稿",
+    "votes": "{count} 票",
+    "vote": "投票",
+    "voted": "已投票",
+    "loginToVote": "登入後投票",
+    "postedBy": "投稿者",
+    "original": "原文",
+    "translation": "翻譯",
+    "showOriginal": "顯示原文",
+    "showTranslation": "顯示翻譯",
+    "aiTranslationNote": "翻譯為自動生成,以原文為準。",
+    "report": "檢舉",
+    "postNew": "發布投稿",
+    "types": {
+      "illustration": "插畫",
+      "cosplay": "Cosplay",
+      "photo": "照片",
+      "text": "文字",
+      "embed": "嵌入"
+    },
+    "viewOriginalPost": "查看原始貼文"
+  },
+  "prize": {
+    "title": "每週獎賞",
+    "description": "每週最佳粉絲投稿可獲得獎品。得獎作品由編輯部依創意與完成度評選。",
+    "currentCycle": "本週",
+    "pastWinners": "歷屆得獎者",
+    "rules": "活動規則",
+    "votingEnds": "投票截止",
+    "winner": "得獎者",
+    "week": "{date} 當週",
+    "noCycle": "目前沒有進行中的獎賞週期。",
+    "judgingNote": "得獎作品由編輯部審查決定,並參考讀者投票。本活動為實力評選,並非抽獎。",
+    "rulesBody": "各地區的參加資格、年齡限制、排除地區、獎品內容、評選方式、稅務處理與個人資料使用方式皆載明於此。員工及關係人不得參加。參加前請先確認所在地區的規則。"
+  },
+  "creators": {
+    "postsBy": "{name} 的投稿",
+    "creator": "創作者"
+  },
+  "press": {
+    "companyPage": "企業",
+    "pressReleasesBy": "{name} 的新聞稿",
+    "aboutCompany": "關於",
+    "website": "網站",
+    "contact": "聯絡"
+  },
+  "auth": {
+    "signIn": "登入",
+    "signOut": "登出",
+    "myPage": "會員中心"
+  },
   "footer": {
     "about": "關於我們",
     "contact": "聯絡我們",
     "privacy": "隱私權政策",
+    "terms": "使用條款",
     "rss": "RSS 訂閱",
-    "copyright": "© {year} 環島新聞網 版權所有"
+    "fans": "粉絲投稿",
+    "prize": "每週獎賞",
+    "forPartners": "企業服務(新聞稿刊登)",
+    "copyright": "© {year} {name}. All rights reserved.",
+    "followUs": "FOLLOW US",
+    "stayOtaku": "STAY OTAKU!"
   },
   "pages": {
     "about": {
       "title": "關於我們",
-      "body": "環島新聞網是面向台灣讀者的綜合新聞與生活資訊網站。我們相信新聞不只是速報,更是幫助讀者理解生活的工具。從政治、社會到旅遊、美食,我們希望陪你環島一圈,看見台灣的每個角落。"
+      "body": "我們以各地粉絲的母語,最快速、精準地傳遞日本動畫與 IP 新聞。除了新聞,也提供各作品的粉絲社群與每週最佳投稿獎賞。以官方表記為準的一致譯名,是我們可信度的核心。"
     },
     "contact": {
       "title": "聯絡我們",
-      "body": "新聞爆料、業務合作、新聞稿發布,歡迎來信。我們會盡快回覆。",
-      "email": "聯絡信箱"
+      "body": "歡迎提供新聞線索、洽談合作、投遞新聞稿,或提出刪除申請(相當於 DMCA)。我們會盡快回覆。",
+      "email": "電子郵件"
     },
     "privacy": {
       "title": "隱私權政策",
-      "body": "環島新聞網重視您的隱私。本網站僅在提供服務所需的最小範圍內蒐集與使用資料,不會將您的個人資料提供給第三方。詳細內容將隨服務更新持續補充。"
+      "body": "我們尊重您的隱私。僅在提供服務所需的最小範圍內蒐集與使用資料,不會將您的個人資料提供給第三方。本政策將隨服務發展更新。"
     }
   },
   "notFound": {
     "title": "找不到頁面",
     "description": "您要找的頁面不存在或已被移動。",
     "backHome": "回到首頁"
+  },
+  "ticker": {
+    "live": "LIVE NOW!",
+    "readNow": "立即閱讀"
+  },
+  "hero": {
+    "featured": "FEATURED",
+    "viewDetails": "查看詳情",
+    "burstTop": "HOT",
+    "burstBottom": "TOPIC!"
+  },
+  "community": {
+    "line1": "JOIN THE",
+    "line2": "ANIME",
+    "line3": "CREW!",
+    "bubble1": "討論!",
+    "bubble2": "分享!",
+    "bubble3": "發現!",
+    "bubble4": "一起參與故事!",
+    "cta": "免費加入"
+  },
+  "home": {
+    "viewAllRankings": "查看完整排行"
   }
 }

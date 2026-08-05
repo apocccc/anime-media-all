@@ -11,11 +11,26 @@ datasource db {
   directUrl = env("DIRECT_DATABASE_URL")
 }
 
+// ===== 共通 enum =====
+
+// 公開5ロケール + 内部編集用 ja(翻訳の原文マスター。公開サイトには一切出さない)
+enum Locale {
+  ja
+  en
+  ko
+  zh_Hant
+  th
+  zh_Hans
+}
+
 enum Role {
   admin
   editor
   author
   contributor
+  reader
+  influencer
+  partner
 }
 
 enum ArticleStatus {
@@ -26,70 +41,197 @@ enum ArticleStatus {
   archived
 }
 
-enum AdminLocale {
-  zh_Hant
-  en
-  ja
+enum ArticleKind {
+  editorial
+  ai_generated
+  press_release
 }
+
+enum TranslationStatus {
+  pending
+  machine
+  needs_review
+  approved
+  failed
+  excluded
+}
+
+enum TranslatedBy {
+  ai
+  human
+}
+
+enum AdminLocale {
+  ja
+  en
+}
+
+// ===== ユーザー・認証 =====
 
 model User {
   id           String      @id @default(cuid())
   email        String      @unique
-  passwordHash String
+  // スタッフのみパスワード認証。会員(OAuth)は null
+  passwordHash String?
   name         String
   slug         String      @unique
-  role         Role        @default(contributor)
-  adminLocale  AdminLocale @default(zh_Hant)
+  role         Role        @default(reader)
+  adminLocale  AdminLocale @default(ja)
   avatarUrl    String?
   bio          String?
+  // influencer 用ハンドル(/creators/{handle})
+  handle       String?     @unique
+  snsLinks     Json?
+  // 会員の生年月(未成年保護。YYYY-MM)
+  birthMonth   String?
+  // 所属事業者(partner ロール)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
-  articles  Article[]
-  revisions Revision[]
-  media     Media[]
+  accounts        OAuthAccount[]
+  articles        Article[]
+  revisions       Revision[]
+  media           Media[]
+  fanPosts        FanPost[]
+  fanPostVotes    FanPostVote[]
+  moderationLogs  ModerationLog[]
+  reviewedTranslations ArticleTranslation[] @relation("TranslationReviewer")
+  verifiedTermForms    TermForm[]
+  prizeAwards     PrizeAward[]
 
   @@index([role])
 }
 
+// Auth.js OAuth アカウント(Google / X / Discord)
+model OAuthAccount {
+  id                String @id @default(cuid())
+  userId            String
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String
+  providerAccountId String
+  type              String  @default("oauth")
+  access_token      String?
+  refresh_token     String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// ===== カテゴリー =====
+
 model Category {
   id        String  @id @default(cuid())
   slug      String  @unique
-  nameZh    String
-  nameEn    String
   order     Int     @default(0)
   isVisible Boolean @default(true)
 
-  articles Article[]
-  rssFeeds RssFeed[]
+  translations CategoryTranslation[]
+  articles     Article[]
+  rssFeeds     RssFeed[]
 
   @@index([order])
 }
 
+model CategoryTranslation {
+  id         String   @id @default(cuid())
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  locale     Locale
+  name       String
+
+  @@unique([categoryId, locale])
+}
+
+// ===== 作品(Series) =====
+
+enum SeriesKind {
+  tv
+  movie
+  ova
+  web
+  other
+}
+
+enum SeriesStatus {
+  pending
+  approved
+  hidden
+}
+
+model Series {
+  id         String       @id @default(cuid())
+  // ローマ字スラッグ(ヘボン式・マクロン無し)例: sousou-no-frieren
+  slug       String       @unique
+  kind       SeriesKind   @default(tv)
+  status     SeriesStatus @default(approved)
+  titleJa    String
+  // 公式サイト・配信リンク等 { official: url, streaming: [{name,url}], sns: [...] }
+  links      Json?
+  // 放送情報 { season: "2024冬", broadcast: "...", episodes: 12 }
+  broadcast  Json?
+  heroImageId String?
+  heroImage   Media?  @relation(fields: [heroImageId], references: [id], onDelete: SetNull)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  translations SeriesTranslation[]
+  articles     ArticleSeries[]
+  fanPosts     FanPost[]
+  terms        Term[]
+
+  @@index([status])
+}
+
+model SeriesTranslation {
+  id       String @id @default(cuid())
+  seriesId String
+  series   Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  locale   Locale
+  title    String
+  synopsis String @default("")
+
+  @@unique([seriesId, locale])
+}
+
+// ===== 記事 =====
+
 model Article {
   id           String        @id @default(cuid())
+  // ロケール非依存スラッグ: {yyyymmdd}-{英語ベース}
   slug         String        @unique
-  title        String
-  lead         String        @default("")
-  body         Json
   status       ArticleStatus @default(draft)
+  kind         ArticleKind   @default(editorial)
+  // 翻訳の原文ロケール(既定 ja。プレスリリースは投稿言語)
+  masterLocale Locale        @default(ja)
   publishAt    DateTime?
   publishedAt  DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   isBreaking   Boolean       @default(false)
   isPinned     Boolean       @default(false)
-  prSourceName String?
   viewCount    Int           @default(0)
 
   // RSS取り込み関連。sourceGuid で重複を防ぎ「先に入ってきたものを優先」
   sourceFeedId String?
   sourceFeed   RssFeed? @relation(fields: [sourceFeedId], references: [id], onDelete: SetNull)
-  sourceName   String?
-  sourceUrl    String?
   sourceGuid   String?  @unique
-  // OpenAI による独自記事化が済んだら true(本文の転載元表記を外し、画像出典のみ残す)
-  isRewritten  Boolean  @default(false)
+
+  // プレスリリース: 配信元事業者・問い合わせ先・解禁日時は publishAt を使用
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  pressContact   String?
+
+  // プレスリリースからAI記事化した派生記事の親(press_release → ai_generated)。
+  // 親PRを却下(archived)したら派生記事も一括で archived にできるよう関連を保持する
+  derivedFromId String?
+  derivedFrom   Article?  @relation("PressArticleify", fields: [derivedFromId], references: [id], onDelete: SetNull)
+  derivatives   Article[] @relation("PressArticleify")
 
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
@@ -98,31 +240,84 @@ model Article {
   heroImageId String?
   heroImage   Media?   @relation(fields: [heroImageId], references: [id])
 
-  tags      ArticleTag[]
-  revisions Revision[]
+  tags         ArticleTag[]
+  translations ArticleTranslation[]
+  sources      ArticleSource[]
+  seriesLinks  ArticleSeries[]
 
   @@index([status, publishedAt(sort: Desc)])
   @@index([categoryId, status, publishedAt(sort: Desc)])
   @@index([authorId, status])
   @@index([status, publishAt])
+  @@index([kind, status])
+}
+
+model ArticleTranslation {
+  id        String            @id @default(cuid())
+  articleId String
+  article   Article           @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  locale    Locale
+  title     String
+  lead      String            @default("")
+  body      Json
+  status    TranslationStatus @default(pending)
+  translatedBy TranslatedBy?
+  model     String?
+  // 翻訳元(jaマスター)のブロックハッシュ一覧。変更ブロックのみ再翻訳するために保持
+  sourceHash String?
+  reviewedById String?
+  reviewedBy   User?    @relation("TranslationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt   DateTime?
+  publishedAt  DateTime?
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  revisions Revision[]
+
+  @@unique([articleId, locale])
+  @@index([locale, status])
+  @@index([status])
+}
+
+model ArticleSource {
+  id          String    @id @default(cuid())
+  articleId   String
+  article     Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  name        String
+  url         String
+  publishedAt DateTime?
+  isPrimary   Boolean   @default(false)
+
+  @@index([articleId])
+}
+
+model ArticleSeries {
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  seriesId  String
+  series    Series  @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  isPrimary Boolean @default(false)
+
+  @@id([articleId, seriesId])
+  @@index([seriesId])
 }
 
 model Revision {
-  id        String   @id @default(cuid())
-  articleId String
-  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  snapshot  Json
-  editedBy  String
-  editor    User     @relation(fields: [editedBy], references: [id])
-  createdAt DateTime @default(now())
+  id            String             @id @default(cuid())
+  translationId String
+  translation   ArticleTranslation @relation(fields: [translationId], references: [id], onDelete: Cascade)
+  snapshot      Json
+  editedBy      String
+  editor        User               @relation(fields: [editedBy], references: [id])
+  createdAt     DateTime           @default(now())
 
-  @@index([articleId, createdAt(sort: Desc)])
+  @@index([translationId, createdAt(sort: Desc)])
 }
 
 model Tag {
-  id     String @id @default(cuid())
-  slug   String @unique
-  nameZh String
+  id   String @id @default(cuid())
+  slug String @unique
+  name String
 
   articles ArticleTag[]
 }
@@ -148,7 +343,10 @@ model Media {
   createdAt  DateTime @default(now())
 
   articles Article[]
+  series   Series[]
 }
+
+// ===== 収集ソース =====
 
 model RssFeed {
   id                String    @id @default(cuid())
@@ -156,12 +354,14 @@ model RssFeed {
   url               String    @unique
   categoryId        String
   category          Category  @relation(fields: [categoryId], references: [id])
-  autoPublish       Boolean   @default(true)
-  // 自動取り込み(cron)の対象にするか。OFFでも手動「今すぐ取得」は可能
+  // 既定はオフ: 編集者承認なしに翻訳・公開へ進めない(§6.3)
+  autoPublish       Boolean   @default(false)
+  // プレスリリース源(例: apocwire アニメカテゴリー)。true の場合、
+  // 取り込み記事は press-release カテゴリーへ原文転載(即時公開)し、
+  // 別途 AI 記事化ジョブが独自記事を生成して適切なカテゴリーへ振り分ける
+  isPressRelease    Boolean   @default(false)
   isEnabled         Boolean   @default(true)
-  // 自動取り込みの頻度(分)。10/30/60/180/360/720/1440
   fetchIntervalMinutes Int    @default(60)
-  // 1回の取得で取り込む最大件数 (1〜30)
   fetchLimit        Int       @default(10)
   lastFetchedAt     DateTime?
   lastError         String?
@@ -170,6 +370,293 @@ model RssFeed {
 
   articles Article[]
 }
+
+// ===== 固有名詞辞書(Glossary) =====
+
+enum TermType {
+  series
+  character
+  person
+  studio
+  company
+  event
+  product
+  music
+  term
+}
+
+enum TermStatus {
+  pending
+  verified
+  locked
+  deprecated
+}
+
+model Term {
+  id             String     @id @default(cuid())
+  type           TermType
+  status         TermStatus @default(pending)
+  nameJa         String
+  readingJa      String?
+  romaji         String     @default("")
+  seriesId       String?
+  series         Series?    @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  notes          String?
+  sourceUrl      String?
+  doNotTranslate Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  forms   TermForm[]
+  aliases TermAlias[]
+
+  @@index([status, type])
+  @@index([nameJa])
+}
+
+model TermForm {
+  id           String    @id @default(cuid())
+  termId       String
+  term         Term      @relation(fields: [termId], references: [id], onDelete: Cascade)
+  locale       Locale
+  value        String
+  isOfficial   Boolean   @default(false)
+  sourceUrl    String?
+  verifiedById String?
+  verifiedBy   User?     @relation(fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt   DateTime?
+
+  @@unique([termId, locale])
+}
+
+enum TermAliasKind {
+  alias
+  abbrev
+  misspelling
+  romaji
+}
+
+model TermAlias {
+  id     String        @id @default(cuid())
+  termId String
+  term   Term          @relation(fields: [termId], references: [id], onDelete: Cascade)
+  locale Locale?
+  value  String
+  kind   TermAliasKind @default(alias)
+
+  @@index([value])
+}
+
+// ===== ジョブキュー(DBキュー。外部キューは使わない) =====
+
+enum JobStatus {
+  queued
+  running
+  done
+  failed
+}
+
+model Job {
+  id             String    @id @default(cuid())
+  type           String
+  payload        Json
+  status         JobStatus @default(queued)
+  attempts       Int       @default(0)
+  runAfter       DateTime  @default(now())
+  idempotencyKey String    @unique
+  lastError      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, runAfter])
+  @@index([type, status])
+}
+
+// ===== 事業者(プレスリリース) =====
+
+enum OrganizationStatus {
+  pending
+  approved
+  suspended
+}
+
+model Organization {
+  id          String             @id @default(cuid())
+  slug        String             @unique
+  name        String
+  status      OrganizationStatus @default(pending)
+  // 信頼済み事業者は審査なしで即時公開できる
+  autoApprove Boolean            @default(false)
+  websiteUrl  String?
+  logoUrl     String?
+  description String?
+  contactEmail String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  members  User[]
+  articles Article[]
+
+  @@index([status])
+}
+
+// ===== ファン投稿(UGC) =====
+
+enum FanPostType {
+  illustration
+  cosplay
+  photo
+  text
+  embed
+}
+
+enum FanPostStatus {
+  pending
+  approved
+  rejected
+  hidden
+}
+
+model FanPost {
+  id             String        @id @default(cuid())
+  authorId       String
+  author         User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  seriesId       String
+  series         Series        @relation(fields: [seriesId], references: [id])
+  type           FanPostType
+  status         FanPostStatus @default(pending)
+  bodyOriginal   String
+  originalLocale Locale
+  mediaIds       String[]      @default([])
+  embedUrl       String?
+  embedProvider  String?
+  // 埋め込み投稿の元アカウント名(例: Facebookアカウント名)。未設定なら投稿者名を表示
+  posterName     String?
+  score          Int           @default(0)
+  voteCount      Int           @default(0)
+  viewCount      Int           @default(0)
+  aiModerationScore Json?
+  rejectReason   String?
+  reviewedById   String?
+  reviewedAt     DateTime?
+  publishedAt    DateTime?
+  createdAt      DateTime      @default(now())
+
+  translations FanPostTranslation[]
+  votes        FanPostVote[]
+  awards       PrizeAward[]
+
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([seriesId, status, publishedAt(sort: Desc)])
+  @@index([authorId, status])
+}
+
+model FanPostTranslation {
+  id           String       @id @default(cuid())
+  postId       String
+  post         FanPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  locale       Locale
+  body         String
+  translatedBy TranslatedBy @default(ai)
+
+  @@unique([postId, locale])
+}
+
+model FanPostVote {
+  id      String   @id @default(cuid())
+  postId  String
+  post    FanPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cycleId String
+  cycle   PrizeCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId, cycleId])
+  @@index([cycleId, postId])
+  @@index([userId, cycleId])
+}
+
+model ModerationLog {
+  id        String   @id @default(cuid())
+  targetType String  // fan_post | article | organization | term
+  targetId  String
+  action    String   // approve | reject | hide | auto_reject | auto_flag ...
+  reason    String?
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([createdAt(sort: Desc)])
+}
+
+// ===== 週次プライズ =====
+
+enum PrizeCycleStatus {
+  open
+  judging
+  decided
+  closed
+}
+
+model PrizeCycle {
+  id           String           @id @default(cuid())
+  startAt      DateTime
+  endAt        DateTime
+  region       String           @default("global")
+  status       PrizeCycleStatus @default(open)
+  winnerPostId String?
+
+  votes  FanPostVote[]
+  awards PrizeAward[]
+
+  @@unique([startAt, region])
+  @@index([status, startAt(sort: Desc)])
+}
+
+enum PrizeAwardStatus {
+  pending
+  issued
+  sent
+  void
+}
+
+model PrizeAward {
+  id       String  @id @default(cuid())
+  cycleId  String
+  cycle    PrizeCycle @relation(fields: [cycleId], references: [id])
+  postId   String
+  post     FanPost @relation(fields: [postId], references: [id])
+  userId   String
+  user     User    @relation(fields: [userId], references: [id])
+  region   String
+  provider String
+  amount   Int
+  currency String
+  code     String?
+  sentAt   DateTime?
+  status   PrizeAwardStatus @default(pending)
+  createdAt DateTime @default(now())
+
+  @@index([cycleId])
+}
+
+// 地域→賞品のマッピング(§9.2。ハードコードしない)
+model RewardCatalog {
+  id          String  @id @default(cuid())
+  region      String
+  provider    String
+  productName String
+  amount      Int
+  currency    String
+  isActive    Boolean @default(true)
+  notes       String?
+
+  @@index([region, isActive])
+}
+
+// ===== その他 =====
 
 model Redirect {
   id         String   @id @default(cuid())

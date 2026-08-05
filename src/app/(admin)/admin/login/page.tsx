@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { LoginForm } from "@/components/admin/LoginForm";
+import { SITE_NAME } from "@/lib/site";
 
 export default async function LoginPage() {
   const session = await auth();
@@ -10,9 +11,9 @@ export default async function LoginPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <p className="text-center text-2xl font-black text-primary">
-          環島新聞網
+          {SITE_NAME}
         </p>
-        <div className="mt-6 rounded-lg border border-line bg-bg p-6 shadow-sm">
+        <div className="mt-6 rounded-lg border border-line bg-bg p-6">
           <LoginForm />
         </div>
       </div>

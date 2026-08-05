@@ -60,11 +60,11 @@ else
     -o "-p $PORT -k \"$SOCKET_DIR\" -c listen_addresses=127.0.0.1" start >/dev/null
 fi
 
-"$PGBIN/createdb" -h 127.0.0.1 -p "$PORT" -U postgres huandaonews 2>/dev/null || true
-echo "▶ database 'huandaonews' ready"
+"$PGBIN/createdb" -h 127.0.0.1 -p "$PORT" -U postgres animemedia 2>/dev/null || true
+echo "▶ database 'animemedia' ready"
 
 # --- .env の DATABASE_URL をこのDBに向ける(他の行は保持) ---
-URL="postgresql://postgres@127.0.0.1:${PORT}/huandaonews"
+URL="postgresql://postgres@127.0.0.1:${PORT}/animemedia"
 if [ ! -f .env ]; then
   AUTH_SECRET=$(openssl rand -base64 32)
   PREVIEW_SECRET=$(openssl rand -hex 16)
@@ -82,13 +82,32 @@ grep -v -e '^DATABASE_URL=' -e '^DIRECT_DATABASE_URL=' .env > .env.new || true
 rm -f .env.new
 echo "▶ DATABASE_URL = $URL"
 
-# OpenAI APIキーの記入欄を用意(値は各自 .env に直接記入する)
-if ! grep -q '^OPENAI_API_KEY=' .env; then
+# AI プロバイダー設定欄を用意。
+# シェルに OPENAI_API_KEY があれば openai を自動選択、無ければ mock(APIキー不要)。
+if ! grep -q '^AI_PROVIDER=' .env; then
   {
-    echo '# OpenAI API(AI独自記事化に使用)— sk-... のキーをここに記入'
-    echo 'OPENAI_API_KEY=""'
+    echo ''
+    echo '# ── AI(自動翻訳・記事生成)──────────────────────'
+    echo '# openai | anthropic | mock(mockはAPIキー不要のローカル用)'
+    echo '# 自動翻訳を使うには AI_PROVIDER="openai" と OPENAI_API_KEY を設定する。'
+    if [ -n "${OPENAI_API_KEY:-}" ]; then
+      echo 'AI_PROVIDER="openai"'
+      echo "OPENAI_API_KEY=\"${OPENAI_API_KEY}\""
+    else
+      echo 'AI_PROVIDER="mock"'
+      echo 'OPENAI_API_KEY=""'
+    fi
+    echo 'ANTHROPIC_API_KEY=""'
+    echo '# 役割別モデル(翻訳=品質重視 / モデレーション・固有名詞抽出=軽量)'
+    echo 'AI_MODEL_WRITE="gpt-4o"'
+    echo 'AI_MODEL_TRANSLATE="gpt-4o"'
+    echo 'AI_MODEL_MODERATE="gpt-4o-mini"'
   } >> .env
-  echo "▶ .env に OPENAI_API_KEY の記入欄を追加しました(キーを直接記入してください)"
+  if [ -n "${OPENAI_API_KEY:-}" ]; then
+    echo "▶ .env に AI 設定を追加しました(OpenAI キーを検出 → openai を有効化)"
+  else
+    echo "▶ .env に AI 設定を追加しました(既定: mock。OpenAI を使うには .env を編集)"
+  fi
 fi
 
 # --- 依存・スキーマ・シード ---
@@ -112,7 +131,7 @@ echo ""
 echo "════════════════════════════════════════════════════════"
 echo "  ✅ Open:  http://localhost:${WEB_PORT}"
 echo "     管理画面: http://localhost:${WEB_PORT}/admin"
-echo "               (admin@huandaonews.com / admin1234)"
+echo "               (admin@example.com / admin1234)"
 echo "     DB停止:   $PGBIN/pg_ctl -D .pgdata stop"
 echo "════════════════════════════════════════════════════════"
 echo ""

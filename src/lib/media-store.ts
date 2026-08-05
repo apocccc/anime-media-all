@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
+import { BOT_UA } from "@/lib/site";
 
 const MAX_WIDTH = 1600;
 const MAX_DOWNLOAD_BYTES = 15 * 1024 * 1024;
@@ -118,7 +119,7 @@ export async function storeRemoteImage(
   try {
     const res = await fetch(imageUrl, {
       signal: AbortSignal.timeout(15_000),
-      headers: { "User-Agent": "HuandaoNewsBot/1.0 (+https://huandaonews.com)" },
+      headers: { "User-Agent": BOT_UA },
     });
     if (!res.ok) return null;
     const contentType = res.headers.get("content-type") ?? "";

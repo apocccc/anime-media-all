@@ -1,10 +1,9 @@
-import { getFeedArticles, type ArticleListItem } from "@/lib/data";
+import { getFeedArticles, pickTranslation, type ArticleListItem } from "@/lib/data";
 import { renderArticleHtml } from "@/lib/tiptap";
 import { xmlEscape } from "@/lib/seo";
-import { absoluteUrl, articlePath, SITE_NAME_ZH } from "@/lib/site";
-
-const FEED_DESCRIPTION =
-  "環島新聞網 — 台灣即時新聞與生活資訊。政治、社會、財經、科技、生活、旅遊等綜合報導。";
+import { categoryName } from "@/lib/categories";
+import { localeMeta, toDbLocale } from "@/lib/locale";
+import { absoluteUrl, articlePath, localizedUrl, SITE_NAME } from "@/lib/site";
 
 export type FeedItem = {
   title: string;
@@ -18,33 +17,45 @@ export type FeedItem = {
   image?: { url: string; mimeType: string };
 };
 
+/** フィードはロケール別(/rss/{locale}.xml, /rss/{locale}/{category}.xml) */
 export async function buildFeedItems(
+  locale: string,
   categorySlug?: string,
   limit = 50
 ): Promise<FeedItem[]> {
-  const articles = await getFeedArticles(categorySlug, limit);
-  return articles.map((a: ArticleListItem) => ({
-    title: a.title,
-    url: absoluteUrl(articlePath(a.category.slug, a.slug)),
-    lead: a.lead,
-    html: renderArticleHtml(a.body),
-    author: a.author.name,
-    category: a.category.nameZh,
-    publishedAt: a.publishedAt ?? a.createdAt,
-    updatedAt: a.updatedAt,
-    image: a.heroImage
-      ? { url: a.heroImage.url, mimeType: a.heroImage.mimeType }
-      : undefined,
-  }));
+  const db = toDbLocale(locale);
+  const articles = await getFeedArticles(db, categorySlug, limit);
+  return articles.flatMap((a: ArticleListItem) => {
+    const t = pickTranslation(a);
+    if (!t) return [];
+    return [
+      {
+        title: t.title,
+        url: localizedUrl(locale, articlePath(a.category.slug, a.slug)),
+        lead: t.lead,
+        html: renderArticleHtml(t.body),
+        author: a.author.name,
+        category: categoryName(a.category, locale),
+        publishedAt: a.publishedAt ?? a.createdAt,
+        updatedAt: a.updatedAt,
+        image: a.heroImage
+          ? { url: a.heroImage.url, mimeType: a.heroImage.mimeType }
+          : undefined,
+      },
+    ];
+  });
 }
 
 export function feedTitle(categoryName?: string): string {
-  return categoryName ? `${SITE_NAME_ZH} — ${categoryName}` : SITE_NAME_ZH;
+  return categoryName ? `${SITE_NAME} — ${categoryName}` : SITE_NAME;
 }
+
+const FEED_DESCRIPTION =
+  "Japanese anime, manga, game and IP news in your language.";
 
 export function renderRss2(
   items: FeedItem[],
-  opts: { title: string; selfPath: string }
+  opts: { title: string; selfPath: string; locale: string }
 ): string {
   const now = new Date().toUTCString();
   const entries = items
@@ -71,9 +82,9 @@ ${i.image ? `      <media:content url="${xmlEscape(i.image.url)}" type="${xmlEsc
   xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>${xmlEscape(opts.title)}</title>
-    <link>${xmlEscape(absoluteUrl("/"))}</link>
+    <link>${xmlEscape(localizedUrl(opts.locale, "/"))}</link>
     <description>${xmlEscape(FEED_DESCRIPTION)}</description>
-    <language>zh-tw</language>
+    <language>${localeMeta(opts.locale).rss}</language>
     <lastBuildDate>${now}</lastBuildDate>
     <atom:link href="${xmlEscape(absoluteUrl(opts.selfPath))}" rel="self" type="application/rss+xml" />
 ${entries}
@@ -84,7 +95,7 @@ ${entries}
 
 export function renderAtom(
   items: FeedItem[],
-  opts: { title: string; selfPath: string }
+  opts: { title: string; selfPath: string; locale: string }
 ): string {
   const updated = (items[0]?.updatedAt ?? new Date()).toISOString();
   const entries = items
@@ -104,11 +115,11 @@ export function renderAtom(
     .join("\n");
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-Hant">
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="${xmlEscape(opts.locale)}">
   <title>${xmlEscape(opts.title)}</title>
-  <link href="${xmlEscape(absoluteUrl("/"))}" />
+  <link href="${xmlEscape(localizedUrl(opts.locale, "/"))}" />
   <link href="${xmlEscape(absoluteUrl(opts.selfPath))}" rel="self" type="application/atom+xml" />
-  <id>${xmlEscape(absoluteUrl("/"))}</id>
+  <id>${xmlEscape(localizedUrl(opts.locale, "/"))}</id>
   <updated>${updated}</updated>
   <subtitle>${xmlEscape(FEED_DESCRIPTION)}</subtitle>
 ${entries}
@@ -118,16 +129,16 @@ ${entries}
 
 export function renderJsonFeed(
   items: FeedItem[],
-  opts: { title: string; selfPath: string }
+  opts: { title: string; selfPath: string; locale: string }
 ): string {
   return JSON.stringify(
     {
       version: "https://jsonfeed.org/version/1.1",
       title: opts.title,
-      home_page_url: absoluteUrl("/"),
+      home_page_url: localizedUrl(opts.locale, "/"),
       feed_url: absoluteUrl(opts.selfPath),
       description: FEED_DESCRIPTION,
-      language: "zh-Hant",
+      language: opts.locale,
       items: items.map((i) => ({
         id: i.url,
         url: i.url,

@@ -5,9 +5,8 @@ import { useTransition } from "react";
 import { setAdminLocaleAction } from "@/app/(admin)/admin/actions";
 
 const OPTIONS = [
-  { value: "zh_Hant", label: "繁體中文" },
-  { value: "en", label: "English" },
   { value: "ja", label: "日本語" },
+  { value: "en", label: "English" },
 ];
 
 export function AdminLocaleSelect({ current }: { current: string }) {

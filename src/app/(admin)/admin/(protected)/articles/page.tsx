@@ -53,6 +53,16 @@ export default async function ArticlesPage({
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
   const perPage = 25;
 
+  // RSS取り込み直後の「未加工(AI未編集)」記事 = ai_generated かつ フィード由来
+  // かつ ja マスターが pending(まだ独自記事化されていない生ソース)。
+  // 一覧では既定で隠し、原文が出るのはプレスリリースと、AIで編集済みの記事のみにする。
+  // 「種別: RSS未加工」を選んだ時だけ、この生ソースを確認できる。
+  const RAW_IMPORT: Prisma.ArticleWhereInput = {
+    kind: "ai_generated",
+    sourceFeedId: { not: null },
+    translations: { some: { locale: "ja", status: "pending" } },
+  };
+
   const where: Prisma.ArticleWhereInput = {
     ...(status && STATUSES.includes(status as ArticleStatus)
       ? { status: status as ArticleStatus }
@@ -68,6 +78,8 @@ export default async function ArticlesPage({
           },
         }
       : {}),
+    // 種別=RSS未加工(raw)なら生ソースのみ、それ以外は生ソースを除外
+    ...(kind === "raw" ? RAW_IMPORT : { NOT: RAW_IMPORT }),
     // contributor/author は自分の記事のみ
     ...(session?.user.role === "admin" || session?.user.role === "editor"
       ? {}
@@ -181,6 +193,7 @@ export default async function ArticlesPage({
               {t(`articles.kinds.${k}`)}
             </option>
           ))}
+          <option value="raw">{t("articles.kinds.raw")}</option>
         </select>
         <input
           type="search"

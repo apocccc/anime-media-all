@@ -59,7 +59,8 @@
         "manual": "Original",
         "editorial": "Editorial",
         "ai_generated": "AI generated",
-        "press_release": "Press release"
+        "press_release": "Press release",
+        "raw": "RSS (unprocessed)"
       },
       "all": "All",
       "columns": {

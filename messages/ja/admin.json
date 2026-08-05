@@ -59,7 +59,8 @@
         "manual": "自社記事",
         "editorial": "編集記事",
         "ai_generated": "AI生成",
-        "press_release": "プレスリリース"
+        "press_release": "プレスリリース",
+        "raw": "RSS未加工(AI未編集)"
       },
       "all": "すべて",
       "columns": {

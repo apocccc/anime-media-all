@@ -74,6 +74,19 @@ body {
   backdrop-filter: none;
 }
 
+/* 管理画面ボタンの押下フィードバック(§12 管理UX)。影は使わず、
+   カーソル・押下時1px沈み・無効時カーソルで「押した感」を出す */
+.admin-ui button:not(:disabled),
+.admin-ui [role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+.admin-ui button:not(:disabled):active {
+  transform: translateY(1px);
+}
+.admin-ui button:disabled {
+  cursor: not-allowed;
+}
+
 /* フォーカスは影ではなく黄色アウトライン(§27) */
 a:focus-visible,
 button:focus-visible,

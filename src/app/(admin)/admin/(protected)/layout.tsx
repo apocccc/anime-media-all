@@ -38,7 +38,7 @@ export default async function ProtectedAdminLayout({
   ];
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="admin-ui flex min-h-screen flex-col md:flex-row">
       <aside className="w-full border-b border-line bg-ink text-white md:w-56 md:shrink-0 md:border-b-0">
         <div className="flex items-center justify-between px-4 py-4 md:block">
           <Link href="/admin" className="text-lg font-black text-white">

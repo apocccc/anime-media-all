@@ -9,6 +9,7 @@ import {
   runDailyRewriteAction,
   updateFeedAction,
 } from "../../rss-actions";
+import { SubmitButton } from "@/components/admin/SubmitButton";
 
 export const dynamic = "force-dynamic";
 
@@ -63,12 +64,7 @@ export default async function RssFeedsPage() {
       <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-bg p-3">
         <p className="min-w-0 flex-1 text-xs text-gray">{t("pipelineHint")}</p>
         <form action={runDailyRewriteAction}>
-          <button
-            type="submit"
-            className="rounded bg-ink px-3 py-1.5 text-xs font-bold text-white hover:bg-ink/80"
-          >
-            ✦ {t("runDailyJob")}
-          </button>
+          <SubmitButton variant="ink">✦ {t("runDailyJob")}</SubmitButton>
         </form>
       </div>
 
@@ -150,12 +146,7 @@ export default async function RssFeedsPage() {
                     </option>
                   ))}
                 </select>
-                <button
-                  type="submit"
-                  className="rounded border border-line px-3 py-1.5 text-xs font-bold hover:border-primary hover:text-primary"
-                >
-                  {t("save")}
-                </button>
+                <SubmitButton variant="outline">{t("save")}</SubmitButton>
               </form>
 
               <p className="mt-2 break-all font-mono text-xs text-gray">{feed.url}</p>
@@ -177,21 +168,11 @@ export default async function RssFeedsPage() {
                 <span className="ml-auto flex gap-2">
                   <form action={fetchFeedNowAction}>
                     <input type="hidden" name="id" value={feed.id} />
-                    <button
-                      type="submit"
-                      className="rounded bg-primary px-3 py-1 text-xs font-bold text-white hover:bg-primary-dark"
-                    >
-                      {t("fetchNow")}
-                    </button>
+                    <SubmitButton variant="primary">{t("fetchNow")}</SubmitButton>
                   </form>
                   <form action={deleteFeedAction}>
                     <input type="hidden" name="id" value={feed.id} />
-                    <button
-                      type="submit"
-                      className="rounded border border-line px-3 py-1 text-xs text-gray hover:border-breaking hover:text-breaking"
-                    >
-                      {t("delete")}
-                    </button>
+                    <SubmitButton variant="danger">{t("delete")}</SubmitButton>
                   </form>
                 </span>
               </div>
@@ -264,12 +245,7 @@ export default async function RssFeedsPage() {
             </option>
           ))}
         </select>
-        <button
-          type="submit"
-          className="rounded bg-primary px-4 py-1.5 text-xs font-bold text-white hover:bg-primary-dark"
-        >
-          {t("add")}
-        </button>
+        <SubmitButton variant="primary">{t("add")}</SubmitButton>
         <p className="w-full text-xs text-gray">{t("autoPublishHint")}</p>
         <p className="w-full text-xs text-gray">{t("autoFetchHint")}</p>
       </form>

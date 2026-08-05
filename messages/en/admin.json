@@ -275,7 +275,16 @@
       "reasonPlaceholder": "Rejection reason (sent to author)",
       "approve": "Approve",
       "reject": "Reject",
-      "auditLog": "Audit log"
+      "auditLog": "Audit log",
+      "add": {
+        "title": "Add a fan post (publish now)",
+        "url": "Social post URL (Facebook / X / YouTube / Instagram / TikTok)",
+        "poster": "Poster name (optional — original account)",
+        "series": "Series",
+        "seriesDefault": "Fan Community (default)",
+        "body": "Body / caption (optional; text post if no URL)",
+        "submit": "Add & publish"
+      }
     },
     "prize": {
       "title": "Weekly Prize",

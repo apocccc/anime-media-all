@@ -9,7 +9,7 @@ import { enqueueJob } from "@/lib/jobs";
 import { revalidateSeries } from "@/lib/revalidate";
 import { isValidSeriesSlug } from "@/lib/slug";
 import { ALL_DB_LOCALES } from "@/lib/locale";
-import type { Locale as DbLocale, SeriesKind } from "@prisma/client";
+import type { Locale as DbLocale, SeriesKind, FanPostType } from "@prisma/client";
 
 async function requireEditor() {
   const session = await auth();
@@ -162,6 +162,99 @@ export async function moderateFanPostAction(formData: FormData) {
     },
   });
   revalidatePath("/admin/moderation");
+}
+
+/* ---------- 管理者によるファン投稿の簡易作成(§12) ---------- */
+
+/** SNS投稿URLから配信元を判定(埋め込み許可ホスト) */
+function detectFanProvider(url: string): string | null {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    if (host === "fb.watch" || host.endsWith("facebook.com")) return "Facebook";
+    if (host === "x.com" || host.endsWith("twitter.com")) return "X";
+    if (host.endsWith("instagram.com")) return "Instagram";
+    if (host.endsWith("tiktok.com")) return "TikTok";
+    if (host === "youtu.be" || host.endsWith("youtube.com")) return "YouTube";
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+const adminFanPostSchema = z.object({
+  embedUrl: z.string().max(500).optional(),
+  body: z.string().max(4000).optional(),
+  posterName: z.string().max(120).optional(),
+  seriesId: z.string().optional(),
+});
+
+/**
+ * 管理者/編集者がファン投稿を直接作成して即公開する。
+ * 埋め込みURLがあれば embed 投稿、本文だけなら text 投稿。
+ * 作品未指定なら汎用「ファンコミュニティ」に紐付ける。
+ */
+export async function adminCreateFanPostAction(formData: FormData) {
+  const user = await requireEditor();
+  const parsed = adminFanPostSchema.parse({
+    embedUrl: (formData.get("embedUrl") as string) || "",
+    body: (formData.get("body") as string) || "",
+    posterName: (formData.get("posterName") as string) || "",
+    seriesId: (formData.get("seriesId") as string) || "",
+  });
+
+  const embedUrl = parsed.embedUrl?.trim() || "";
+  const body = parsed.body?.trim() || "";
+  if (!embedUrl && !body) return; // 何も入力が無ければ何もしない
+
+  let embedProvider: string | null = null;
+  if (embedUrl) {
+    embedProvider = detectFanProvider(embedUrl);
+    if (!embedProvider) return; // 未対応ホスト
+  }
+
+  // 紐付け先の作品: 未指定なら汎用「ファンコミュニティ」を用意
+  let seriesId = parsed.seriesId?.trim() || "";
+  if (!seriesId) {
+    const community = await prisma.series.upsert({
+      where: { slug: "community" },
+      update: {},
+      create: {
+        slug: "community",
+        titleJa: "ファンコミュニティ",
+        status: "approved",
+        translations: {
+          create: [
+            { locale: "en" as DbLocale, title: "Fan Community" },
+            { locale: "ja" as DbLocale, title: "ファンコミュニティ" },
+          ],
+        },
+      },
+    });
+    seriesId = community.id;
+  }
+
+  const post = await prisma.fanPost.create({
+    data: {
+      authorId: user.id,
+      seriesId,
+      type: (embedUrl ? "embed" : "text") as FanPostType,
+      status: "approved",
+      bodyOriginal: body,
+      originalLocale: "ja" as DbLocale,
+      embedUrl: embedUrl || null,
+      embedProvider,
+      posterName: parsed.posterName?.trim() || null,
+      publishedAt: new Date(),
+    },
+  });
+
+  // 本文がある場合はキャプション翻訳をキューへ
+  if (body) {
+    await enqueueJob("translate_fan_post", { postId: post.id }, `translate-fanpost:${post.id}`);
+  }
+
+  revalidatePath("/admin/moderation");
+  revalidatePath("/fans");
 }
 
 /* ---------- 事業者 ---------- */

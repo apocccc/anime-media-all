@@ -275,7 +275,16 @@
       "reasonPlaceholder": "却下理由(投稿者に通知)",
       "approve": "承認",
       "reject": "却下",
-      "auditLog": "監査ログ"
+      "auditLog": "監査ログ",
+      "add": {
+        "title": "ファン投稿を追加(即公開)",
+        "url": "SNS投稿URL(Facebook / X / YouTube / Instagram / TikTok)",
+        "poster": "投稿者名(任意・元アカウント名)",
+        "series": "作品",
+        "seriesDefault": "ファンコミュニティ(既定)",
+        "body": "本文・キャプション(任意。URLが無い場合はテキスト投稿)",
+        "submit": "追加して公開"
+      }
     },
     "prize": {
       "title": "週次プライズ",

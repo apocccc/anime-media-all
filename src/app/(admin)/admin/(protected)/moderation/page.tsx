@@ -3,7 +3,11 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { moderateFanPostAction } from "../../community-actions";
+import {
+  moderateFanPostAction,
+  adminCreateFanPostAction,
+} from "../../community-actions";
+import { SubmitButton } from "@/components/admin/SubmitButton";
 import { fromDbLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +23,7 @@ export default async function ModerationPage() {
   }
   const t = await getTranslations("admin.moderation");
 
-  const [pending, recentLogs] = await Promise.all([
+  const [pending, recentLogs, seriesList] = await Promise.all([
     prisma.fanPost.findMany({
       where: { status: "pending" },
       orderBy: { createdAt: "asc" },
@@ -34,6 +38,12 @@ export default async function ModerationPage() {
       take: 20,
       include: { actor: { select: { name: true } } },
     }),
+    prisma.series.findMany({
+      where: { status: "approved" },
+      orderBy: { titleJa: "asc" },
+      take: 200,
+      select: { id: true, titleJa: true },
+    }),
   ]);
 
   const mediaIds = [...new Set(pending.flatMap((p) => p.mediaIds.slice(0, 1)))];
@@ -43,6 +53,48 @@ export default async function ModerationPage() {
   return (
     <div className="max-w-4xl">
       <h1 className="text-2xl font-black">{t("title")}</h1>
+
+      {/* 管理者による簡易ファン投稿 */}
+      <form
+        action={adminCreateFanPostAction}
+        className="mt-4 flex flex-col gap-2 rounded-lg border border-line bg-bg p-4"
+      >
+        <p className="text-sm font-bold">{t("add.title")}</p>
+        <input
+          name="embedUrl"
+          type="url"
+          placeholder={t("add.url")}
+          className="rounded border border-line bg-surface px-3 py-1.5 text-sm"
+        />
+        <div className="flex flex-wrap gap-2">
+          <input
+            name="posterName"
+            placeholder={t("add.poster")}
+            className="min-w-40 flex-1 rounded border border-line bg-surface px-3 py-1.5 text-sm"
+          />
+          <select
+            name="seriesId"
+            aria-label={t("add.series")}
+            className="rounded border border-line bg-surface px-3 py-1.5 text-sm"
+          >
+            <option value="">{t("add.seriesDefault")}</option>
+            {seriesList.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.titleJa}
+              </option>
+            ))}
+          </select>
+        </div>
+        <textarea
+          name="body"
+          rows={2}
+          placeholder={t("add.body")}
+          className="rounded border border-line bg-surface px-3 py-1.5 text-sm"
+        />
+        <SubmitButton variant="primary" className="self-start">
+          {t("add.submit")}
+        </SubmitButton>
+      </form>
 
       <div className="mt-6 flex flex-col gap-3">
         {pending.length === 0 ? (

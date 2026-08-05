@@ -48,12 +48,33 @@ export default async function HomePage({
   const rest = latest.filter((a) => !usedIds.has(a.id));
   // 下段パネル: news / anime / manga を優先し、足りない分は記事のあるカテゴリーで補完
   const preferred = ["news", "anime", "manga"];
-  const panels = [
+  const selectedPanels = [
     ...preferred
       .map((slug) => digests.find((d) => d.category.slug === slug))
       .filter((d): d is (typeof digests)[number] => Boolean(d)),
-    ...digests.filter((d) => !preferred.includes(d.category.slug)),
+    ...digests.filter(
+      (d) => !preferred.includes(d.category.slug) && d.category.slug !== "press-release"
+    ),
   ].slice(0, 3);
+
+  // 各パネルを常に3件で埋める。自カテゴリーの記事が足りなければ最新記事
+  // (プレスリリース除く)で補完する(各行のチップは記事本来のカテゴリーを表示)。
+  const backfillPool = latest.filter((a) => a.category.slug !== "press-release");
+  const usedInPanels = new Set<string>(
+    [hero?.id, ...sideStories.map((a) => a.id)].filter(Boolean) as string[]
+  );
+  const panels = selectedPanels.map(({ category, articles }) => {
+    const picked = articles.slice(0, 3);
+    const ids = new Set(picked.map((a) => a.id));
+    for (const a of backfillPool) {
+      if (picked.length >= 3) break;
+      if (ids.has(a.id) || usedInPanels.has(a.id)) continue;
+      picked.push(a);
+      ids.add(a.id);
+    }
+    picked.forEach((a) => usedInPanels.add(a.id));
+    return { category, articles: picked };
+  });
 
   return (
     <div className="mx-auto w-[calc(100%-24px)] max-w-[1600px] pb-6 xl:w-[calc(100%-72px)]">

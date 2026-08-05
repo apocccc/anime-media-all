@@ -18,6 +18,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
     "db:seed:prod": "tsx --env-file=.env prisma/seed-prod.ts",
+    "db:seed:fanposts": "tsx prisma/seed-fanposts.ts",
     "check:i18n": "tsx scripts/check-i18n-keys.ts"
   },
   "prisma": {

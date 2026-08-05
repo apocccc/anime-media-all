@@ -10,20 +10,31 @@
 
 type EmbedKind = "facebook" | "youtube" | "link";
 
-export function detectEmbed(url: string): { kind: EmbedKind; src?: string } {
+export function detectEmbed(url: string): {
+  kind: EmbedKind;
+  src?: string;
+  /** facebook のとき: 動画/リールか、投稿(グループ・写真等)か */
+  variant?: "video" | "post";
+} {
   let host = "";
+  let path = "";
   try {
-    host = new URL(url).hostname.replace(/^www\./, "");
+    const u = new URL(url);
+    host = u.hostname.replace(/^www\./, "");
+    path = u.pathname;
   } catch {
     return { kind: "link" };
   }
 
-  // Facebook(fb.watch 短縮URL含む)は動画プラグインの iframe で埋め込む
+  // Facebook: 動画/リールは video プラグイン、グループ投稿・写真等は post プラグインで埋め込む
   if (host === "fb.watch" || host.endsWith("facebook.com")) {
-    const src = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
-      url
-    )}&show_text=false&width=560`;
-    return { kind: "facebook", src };
+    const isVideo =
+      host === "fb.watch" || /\/(reel|reels|videos|watch)\b/i.test(path);
+    const enc = encodeURIComponent(url);
+    const src = isVideo
+      ? `https://www.facebook.com/plugins/video.php?href=${enc}&show_text=false&width=560`
+      : `https://www.facebook.com/plugins/post.php?href=${enc}&show_text=true&width=500`;
+    return { kind: "facebook", src, variant: isVideo ? "video" : "post" };
   }
 
   // YouTube
@@ -62,13 +73,14 @@ export function EmbedRenderer({
   const embed = detectEmbed(url);
 
   if (embed.kind === "facebook" && embed.src) {
-    // 縦動画(Reels/fb.watch)も収まるよう縦長比率の枠に収める
+    // 動画/リールは縦長(9:16)、投稿は縦やや長め(4:5)の枠に収める
+    const ratio = embed.variant === "post" ? "4 / 5" : "9 / 16";
     return (
       <figure className="mt-5">
         <div className="overflow-hidden rounded-[13px] border-2 border-ink bg-bg-sub">
           <div
             className="relative mx-auto w-full max-w-[500px]"
-            style={{ aspectRatio: "9 / 16" }}
+            style={{ aspectRatio: ratio }}
           >
             <iframe
               src={embed.src}

@@ -27,6 +27,19 @@ export const CONTACT_EMAIL =
 /** 収集ボットのUA(§6.1: robots.txt 尊重・UA明示)。SITE_NAME/SITE_URL から生成 */
 export const BOT_UA = `${SITE_NAME.replace(/\s+/g, "")}Bot/1.0 (+${SITE_URL}/about)`;
 
+/**
+ * Google Search Console の HTMLタグ認証トークン(§10)。
+ * Search Console の「HTML タグ」で表示される content="..." の値のみを設定する。
+ * 複数プロパティを同時に認証する場合はカンマ区切り。
+ * Cloudflare の DNS TXT レコードで認証する場合は設定不要(推奨。docs/ANALYTICS.md)。
+ */
+export const GOOGLE_SITE_VERIFICATION: string[] = (
+  process.env.GOOGLE_SITE_VERIFICATION ?? ""
+)
+  .split(",")
+  .map((v) => v.trim())
+  .filter(Boolean);
+
 /** 絶対URLを生成する。path は必ず / 始まり */
 export function absoluteUrl(path: string): string {
   return `${SITE_URL}${path}`;

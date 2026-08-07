@@ -126,7 +126,8 @@ TURNSTILE_SECRET_KEY  = ...
 RESEND_API_KEY        = re_...
 PRIZE_TIMEZONE        = Asia/Tokyo
 UPLOAD_MAX_MB         = 8
-NEXT_PUBLIC_GA_ID     = (任意 G-...)
+NEXT_PUBLIC_GA_ID     = (任意 G-... GA4測定ID。docs/ANALYTICS.md)
+GOOGLE_SITE_VERIFICATION = (任意。Search Console を HTMLタグで認証する場合のみ。DNS認証なら不要)
 PRESS_API_KEYS        = (任意・提携先向けPR APIキー。カンマ区切り)
 # 会員OAuth(任意)
 AUTH_GOOGLE_ID= / AUTH_GOOGLE_SECRET=
@@ -159,7 +160,11 @@ pnpm db:seed:prod
 3. Cron はデプロイ即有効(`vercel.json`):
    - 毎分: 予約公開リリース / 10分毎: RSS収集 / JST 9・15・21時: 記事生成 /
      2分毎: 翻訳・記事化ジョブ / JST 3時: 用語監査 / 月曜0時(JST): 週次プライズ集計
-4. Google Search Console にプロパティ追加 → `sitemap.xml` と各 `news-sitemap-{locale}.xml` を送信
+4. **Google Analytics / Search Console 連携** → 手順は [`docs/ANALYTICS.md`](./ANALYTICS.md)
+   - GA4: 測定ID を `NEXT_PUBLIC_GA_ID` に設定 → **Redeploy**(`NEXT_PUBLIC_*` はビルド時埋め込み)
+   - Search Console: Cloudflare の DNS TXT で**ドメインプロパティ**を認証(`/` が `/en` へ 307 するため
+     URLプレフィックス + HTMLタグ認証は失敗しうる)
+   - サイトマップ送信: `sitemap.xml` + `news-sitemap-{locale}.xml` を5ロケール分すべて
 
 ## 落とし穴チェックリスト
 

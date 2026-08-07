@@ -15,7 +15,7 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { GoogleAnalytics } from "@/components/site/GoogleAnalytics";
 import { JsonLd } from "@/components/JsonLd";
 import { organizationJsonLd, webSiteJsonLd } from "@/lib/seo";
-import { absoluteUrl, SITE_URL } from "@/lib/site";
+import { absoluteUrl, GOOGLE_SITE_VERIFICATION, SITE_URL } from "@/lib/site";
 import "../../globals.css";
 
 export function generateStaticParams() {
@@ -55,6 +55,10 @@ export async function generateMetadata({
         ],
       },
     },
+    // Search Console の HTMLタグ認証。未設定なら出力しない(DNS認証時は不要)
+    ...(GOOGLE_SITE_VERIFICATION.length > 0
+      ? { verification: { google: GOOGLE_SITE_VERIFICATION } }
+      : {}),
   };
 }
 
@@ -82,7 +86,7 @@ export default async function SiteLayout({
         <JsonLd data={[organizationJsonLd(), webSiteJsonLd(locale)]} />
         {/* 公開サイトのみ計測(管理画面は別レイアウトのため対象外) */}
         {process.env.NEXT_PUBLIC_GA_ID ? (
-          <GoogleAnalytics id={process.env.NEXT_PUBLIC_GA_ID} />
+          <GoogleAnalytics id={process.env.NEXT_PUBLIC_GA_ID} locale={locale} />
         ) : null}
         <NextIntlClientProvider>
           <SiteHeader categories={categories} locale={locale} />

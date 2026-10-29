@@ -227,9 +227,15 @@ GA4 のレポート内で検索クエリ・表示回数を見られるように�
 - [x] Search Console にドメインプロパティを追加、Cloudflare に TXT レコードを登録して認証
 - [x] `sitemap.xml` を送信(「成功しました」/ 参照先10本も 200)
 - [x] robots.txt を目視確認
-- [ ] GA4 ↔ Search Console をリンクし、レポートを公開
-- [ ] **記事の公開が再開してから** `news-sitemap-{en,ko,zh-Hant,th,zh-Hans}.xml` を5本送信
-      (空のまま送るとエラーになる。§2-4)
+- [x] GA4 ↔ Search Console をリンクし、レポートを公開
+      (GA4 レポートに「クエリ」「Google オーガニック検索レポート」が出る。
+      Search Console のデータ到着まで数日は空表示)
+
+**ここまでで導入は完了。以下は記事公開が動き出してから。**
+
+- [ ] **記事を公開してから48時間以内に** `news-sitemap-{en,ko,zh-Hant,th,zh-Hans}.xml` を5本送信
+      (空のまま送るとエラーになる。§2-4。直近48時間の記事のみを含む仕様なので、
+      公開から2日以上経つと再び空になり同じエラーになる)
 - [ ] (HTMLタグ認証が必要になった場合のみ)`GOOGLE_SITE_VERIFICATION` を設定して Redeploy
 
 ---

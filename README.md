@@ -83,4 +83,6 @@ translate ジョブが5言語へ並列翻訳(辞書注入+機械検証+1回リ�
 
 Vercel + Supabase(ap-northeast-1)+ Cloudflare R2 / Turnstile + Resend。`vercel.json` に cron 定義済み
 (分単位cronのため Pro プラン前提)。環境変数は `.env.example` を参照。
-`buildCommand` が `prisma migrate deploy && next build` を実行する。
+`buildCommand` が `prisma generate && prisma migrate deploy && next build` を実行する
+(`prisma generate` はビルドキャッシュで install がスキップされたときに Prisma Client が
+古いまま残るのを防ぐため。外すとスキーマ変更時にビルドが落ちる。docs/DEPLOY.md STEP 6)。

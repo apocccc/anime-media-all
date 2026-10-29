@@ -96,8 +96,16 @@ echo "INDEXNOW_KEY=$(openssl rand -hex 16)"
 
 1. New Project → GitHub リポジトリ(`apocccc/anime-media-all`)を Import
 2. **Production Branch = リポジトリのデフォルトブランチ**(Vercel が自動選択。現状 `claude/anime-media-dev-it54oa` が既定ブランチなので、そのまま本番として公開される。main へのマージは不要)
-3. Build Command は `vercel.json` に設定済み(`npx prisma migrate deploy && next build`)。
+3. Build Command は `vercel.json` に設定済み
+   (`npx prisma generate && npx prisma migrate deploy && next build`)。
    関数リージョンは `hnd1`(東京)固定済み
+   - ⚠ **`prisma generate` を外さないこと。** Vercel はビルドキャッシュが温まっていると
+     依存の再インストールを飛ばす(ログに `Already up to date`)。すると
+     `@prisma/client` の postinstall が走らず Prisma Client が再生成されないため、
+     スキーマに追加したフィールドが型に存在せず `next build` の型チェックが落ちる
+     (`tsconfig` の `include` が `**/*.ts` なので `prisma/*.ts` も型チェック対象)。
+     2026-08 にこれで本番デプロイが4回連続で失敗し、本番が4コミット遅れたまま
+     放置される事故が起きた
 4. **Pro プラン**に(cron を分単位で使うため)
 5. 環境変数(Production / Preview 共通。`.env.example` 全項目):
 
@@ -173,6 +181,8 @@ pnpm db:seed:prod
 - [ ] DBパスワードは英数字のみ(記号は URL エンコード)
 - [ ] apex/www は **DNS only(グレー雲)**、img(R2) は **Proxied(オレンジ雲)**
 - [ ] 画像がアップできるのに表示されない → img カスタムドメインの有効化待ち
-- [ ] Build Command に `prisma migrate deploy`(設定済み)/ Preview も本番DBを触る
+- [ ] Build Command に `prisma generate` と `prisma migrate deploy`(設定済み)/ Preview も本番DBを触る
+- [ ] **デプロイが失敗していないか定期的に見る。** 自動デプロイは「失敗しても静かに古い本番が残る」ため、
+      ブランチが進んでいるのに本番が古いまま、という状態に気づきにくい
 - [ ] Vercel は **Pro プラン**(分単位 cron)/ `CRON_SECRET` 必須(未設定だと cron は fail-closed で実行しない)
 - [ ] OpenAI キー・課金が有効(未設定だと翻訳/記事化が needs_review に滞留)

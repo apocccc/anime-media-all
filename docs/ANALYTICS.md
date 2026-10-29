@@ -7,9 +7,36 @@
 
 ---
 
+## 0. このサイトの GA4 プロパティ(確定値)
+
+| 項目 | 値 |
+|---|---|
+| Google アカウント | `apoc.signup@gmail.com` |
+| GA アカウント | `288385487`(apoc) |
+| プロパティ | `561405434`(Anime Relay) |
+| ウェブストリーム | `16230756839`(Anime Relay / https://animerelay.com) |
+| **測定ID** | **`G-SPTV1D9DEW`** |
+
+> ⚠ **同じ GA アカウント(apoc)に他サイトのプロパティが10件以上同居している。**
+> 特に `561092701` は **Dokkhun News(dokkhunnews.com / `G-QRYD816CHD`)**であり、
+> このサイトのものではない。測定IDを設定するときは必ず上表の値を使うこと。
+> 別サイトのプロパティにストリームを追加すると、データ保持・レポート・
+> コンバージョン定義がプロパティ単位で共通になるため、後から分離できない。
+
+- タイムゾーンは日本、通貨は日本円、データ保持は14か月で設定済み
+- 拡張計測機能の「ブラウザの履歴イベントに基づくページの変更」は**オン必須**
+  (クライアント側ルート遷移のページビューがこれで送られる。§1-3)
+- Google シグナルは未設定(地域ごとの同意要件の確認が済むまで有効化しない)
+- **ローカル開発では `NEXT_PUBLIC_GA_ID` を設定しない。** 本番プロパティに
+  開発中のアクセスが混入する
+
+---
+
 ## 1. Google Analytics (GA4)
 
 ### 1-1. プロパティと測定IDの取得
+
+> すでにプロパティは作成済み(§0)。新規に作る場合のみ以下を参照する。
 
 1. https://analytics.google.com → 管理 → **プロパティを作成**
    - プロパティ名: `Anime Relay`
@@ -22,7 +49,7 @@
 Vercel → Project → Settings → Environment Variables に追加(Production / Preview 両方):
 
 ```
-NEXT_PUBLIC_GA_ID = G-XXXXXXXXXX
+NEXT_PUBLIC_GA_ID = G-SPTV1D9DEW
 ```
 
 > ⚠ `NEXT_PUBLIC_*` は**ビルド時にバンドルへ埋め込まれる**。環境変数を追加しただけでは反映されないので、
@@ -159,11 +186,11 @@ GA4 のレポート内で検索クエリ・表示回数を見られるように�
 
 ## 4. 導入チェックリスト
 
-- [ ] GA4 プロパティ作成、測定ID を取得
-- [ ] Vercel に `NEXT_PUBLIC_GA_ID` を設定(Production / Preview)
+- [x] GA4 プロパティ作成、測定ID を取得(§0。`G-SPTV1D9DEW`)
+- [x] GA4 のデータ保持期間を14か月に変更
+- [ ] Vercel に `NEXT_PUBLIC_GA_ID = G-SPTV1D9DEW` を設定(Production / Preview)
 - [ ] **Redeploy した**(`NEXT_PUBLIC_*` はビルド時に埋め込まれるため)
 - [ ] GA4 リアルタイムで自分のアクセスを確認
-- [ ] GA4 のデータ保持期間を14か月に変更
 - [ ] Search Console にドメインプロパティを追加、Cloudflare に TXT レコードを登録して認証
 - [ ] (HTMLタグ認証を選んだ場合)`GOOGLE_SITE_VERIFICATION` を設定して Redeploy
 - [ ] `sitemap.xml` を送信

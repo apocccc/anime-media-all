@@ -7,15 +7,24 @@
 
 ---
 
-## 0. このサイトの GA4 プロパティ(確定値)
+## 0. このサイトの GA4 / Search Console(確定値)
 
 | 項目 | 値 |
 |---|---|
 | Google アカウント | `apoc.signup@gmail.com` |
 | GA アカウント | `288385487`(apoc) |
-| プロパティ | `561405434`(Anime Relay) |
+| GA プロパティ | `561405434`(Anime Relay) |
 | ウェブストリーム | `16230756839`(Anime Relay / https://animerelay.com) |
 | **測定ID** | **`G-SPTV1D9DEW`** |
+| Search Console | ドメインプロパティ `animerelay.com`(DNS TXT で認証済み) |
+
+> ⚠ **Search Console を開くときは `?authuser=1` を付ける。** 既定では別アカウント
+> (`shunsukesaito98@gmail.com`)でサインインしており、プロパティが見えない。
+
+- Search Console の認証は Cloudflare の TXT レコード(名前 `@`、
+  `google-site-verification=...`)1本。**このレコードを消すと所有権確認が失効する**
+- `GOOGLE_SITE_VERIFICATION`(HTMLタグ認証)は DNS 認証を使っているため未設定。
+  将来 URLプレフィックスプロパティが必要になった場合の備えとして実装だけ残っている
 
 > ⚠ **同じ GA アカウント(apoc)に他サイトのプロパティが10件以上同居している。**
 > 特に `561092701` は **Dokkhun News(dokkhunnews.com / `G-QRYD816CHD`)**であり、
@@ -155,8 +164,20 @@ news-sitemap-th.xml
 news-sitemap-zh-Hans.xml
 ```
 
-- news-sitemap は**直近48時間**に公開された記事のみを含む(Googleニュースの仕様)。
-  記事がまだ無い時期に登録すると「URL が 0 件」と表示されるが正常
+> ⚠ **直近48時間に公開記事が無いときは送信しないこと。**
+> news-sitemap は**直近48時間**に公開された記事のみを含む(Googleニュースの仕様)。
+> 該当記事が無いと中身が空の `<urlset>` になり、Search Console はこれを
+> 「0件」ではなく**エラー**として扱う(`XML タグが指定されていません` /
+> 親タグ `urlset` に必須タグ `url` が無い)。
+> 記事の公開が動き出してから5本まとめて送信する。
+>
+> 2026-10 に実際にこれで `news-sitemap-en.xml` が「1 件のエラー」になった。
+> 送信前に各URLを開き、`<url>` が1件以上あることを確認すること。
+
+- 仕様上 48 時間より古い記事を含めてはいけないため、空になるのは実装の不具合ではない。
+  記事の公開が止まっていること自体が原因
+- robots.txt が5本を広告しているため、送信しなくても Google は発見する。
+  手動送信は必須ではない
 - ファン投稿は news-sitemap に含めない(§8.3)
 
 ### 2-5. 多言語(hreflang)について
@@ -197,17 +218,19 @@ GA4 のレポート内で検索クエリ・表示回数を見られるように�
 - [x] GA4 プロパティ作成、測定ID を取得(§0。`G-SPTV1D9DEW`)
 - [x] GA4 のデータ保持期間を14か月に変更
 - [x] Vercel(プロジェクト `animerelay.com`)に `NEXT_PUBLIC_GA_ID = G-SPTV1D9DEW` を設定
-- [ ] Preview で計測を検証したあと、**Preview 側の `NEXT_PUBLIC_GA_ID` を削除**(§1-2)
-- [ ] GA のコードを本番ブランチ `claude/anime-media-dev-it54oa` にマージ
+- [x] Preview で計測を検証したあと、**Preview 側の `NEXT_PUBLIC_GA_ID` を削除**(§1-2)
+      (Production のビルド済みバンドルは変わらないので Redeploy は不要)
+- [x] GA のコードを本番ブランチ `claude/anime-media-dev-it54oa` にマージ
       (このリポジトリは**デフォルトブランチ = 本番**。機能ブランチのままでは本番に出ない)
-- [ ] **Production を Redeploy した**(`NEXT_PUBLIC_*` はビルド時に埋め込まれるため)
-- [ ] GA4 リアルタイムで自分のアクセスを確認
-- [ ] Search Console にドメインプロパティを追加、Cloudflare に TXT レコードを登録して認証
-- [ ] (HTMLタグ認証を選んだ場合)`GOOGLE_SITE_VERIFICATION` を設定して Redeploy
-- [ ] `sitemap.xml` を送信
-- [ ] `news-sitemap-{en,ko,zh-Hant,th,zh-Hans}.xml` を5本とも送信
-- [ ] robots.txt を目視確認
+- [x] **Production を Redeploy した**(`NEXT_PUBLIC_*` はビルド時に埋め込まれるため)
+- [x] GA4 リアルタイムで自分のアクセスを確認
+- [x] Search Console にドメインプロパティを追加、Cloudflare に TXT レコードを登録して認証
+- [x] `sitemap.xml` を送信(「成功しました」/ 参照先10本も 200)
+- [x] robots.txt を目視確認
 - [ ] GA4 ↔ Search Console をリンクし、レポートを公開
+- [ ] **記事の公開が再開してから** `news-sitemap-{en,ko,zh-Hant,th,zh-Hans}.xml` を5本送信
+      (空のまま送るとエラーになる。§2-4)
+- [ ] (HTMLタグ認証が必要になった場合のみ)`GOOGLE_SITE_VERIFICATION` を設定して Redeploy
 
 ---
 

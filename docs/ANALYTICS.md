@@ -46,14 +46,22 @@
 
 ### 1-2. サイトへ設定
 
-Vercel → Project → Settings → Environment Variables に追加(Production / Preview 両方):
+Vercel → Project → Settings → Environment Variables(プロジェクト名は **`animerelay.com`**。
+`anime-media-all` という名前のプロジェクトは存在しない)。
 
 ```
-NEXT_PUBLIC_GA_ID = G-SPTV1D9DEW
+NEXT_PUBLIC_GA_ID = G-SPTV1D9DEW     ← Production のみ
 ```
 
 > ⚠ `NEXT_PUBLIC_*` は**ビルド時にバンドルへ埋め込まれる**。環境変数を追加しただけでは反映されないので、
-> 必ず **Redeploy(再デプロイ)** すること。
+> 必ず **Redeploy(再デプロイ)** すること。Redeploy 時は「Use existing Build Cache」を外す。
+
+**Environment は Production だけにする。** Preview にも設定すると、プレビューデプロイ
+(`*.vercel.app`)のアクセスが本番 GA プロパティに混入し、ホスト名違いのデータが
+レポートに混ざる。GA4 の内部トラフィック除外はIPベースでホスト名では切れないため、
+事後にきれいに分離できない。
+
+タグの出力をプレビューで検証したいときだけ一時的に Preview へ付け、**確認後に外す**。
 
 形式が `G-XXXXXXXXXX` でない値(旧UAの `UA-...` など)を入れた場合、タグは出力されない。
 
@@ -188,8 +196,11 @@ GA4 のレポート内で検索クエリ・表示回数を見られるように�
 
 - [x] GA4 プロパティ作成、測定ID を取得(§0。`G-SPTV1D9DEW`)
 - [x] GA4 のデータ保持期間を14か月に変更
-- [ ] Vercel に `NEXT_PUBLIC_GA_ID = G-SPTV1D9DEW` を設定(Production / Preview)
-- [ ] **Redeploy した**(`NEXT_PUBLIC_*` はビルド時に埋め込まれるため)
+- [x] Vercel(プロジェクト `animerelay.com`)に `NEXT_PUBLIC_GA_ID = G-SPTV1D9DEW` を設定
+- [ ] Preview で計測を検証したあと、**Preview 側の `NEXT_PUBLIC_GA_ID` を削除**(§1-2)
+- [ ] GA のコードを本番ブランチ `claude/anime-media-dev-it54oa` にマージ
+      (このリポジトリは**デフォルトブランチ = 本番**。機能ブランチのままでは本番に出ない)
+- [ ] **Production を Redeploy した**(`NEXT_PUBLIC_*` はビルド時に埋め込まれるため)
 - [ ] GA4 リアルタイムで自分のアクセスを確認
 - [ ] Search Console にドメインプロパティを追加、Cloudflare に TXT レコードを登録して認証
 - [ ] (HTMLタグ認証を選んだ場合)`GOOGLE_SITE_VERIFICATION` を設定して Redeploy

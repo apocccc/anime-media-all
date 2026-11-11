@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import type { JSONContent } from "@tiptap/core";
-import { aiCompleteJson, aiConfigured, modelForRole } from "@/lib/ai/provider";
+import {
+  aiCompleteJson,
+  aiConfigured,
+  aiRoleEnabled,
+  modelForRole,
+} from "@/lib/ai/provider";
 import { buildRewrittenBody, extractSource, fetchPageText } from "@/lib/rewrite";
 import { queueArticleTranslations } from "@/lib/translate";
 import { articleSlug, slugify } from "@/lib/slug";
@@ -41,6 +46,8 @@ export type GenerateSummary = {
   failed: number;
   truncated: boolean;
   skippedNoKey: boolean;
+  /** AI_WRITE_ENABLED で記事生成が停止されているため実行しなかった */
+  skippedDisabled: boolean;
   details: string[];
 };
 
@@ -52,8 +59,18 @@ export async function generateMasterArticles(
     failed: 0,
     truncated: false,
     skippedNoKey: false,
+    skippedDisabled: false,
     details: [],
   };
+
+  // 記事生成の停止(2026-11)。記事は人手で執筆する方針のため既定で無効。
+  if (!aiRoleEnabled("write")) {
+    summary.skippedDisabled = true;
+    summary.details.push(
+      "AI article generation is disabled — set AI_WRITE_ENABLED=true to re-enable"
+    );
+    return summary;
+  }
 
   if (!aiConfigured()) {
     summary.skippedNoKey = true;
@@ -235,6 +252,8 @@ export async function articleifyPressRelease(
   prArticleId: string,
   now = new Date()
 ): Promise<{ ok: boolean; reason?: string; articleId?: string }> {
+  // 記事生成の停止(2026-11): PRは原文のまま公開され、独自記事化は行わない
+  if (!aiRoleEnabled("write")) return { ok: false, reason: "write_disabled" };
   if (!aiConfigured()) return { ok: false, reason: "ai_not_configured" };
 
   const pr = await prisma.article.findUnique({

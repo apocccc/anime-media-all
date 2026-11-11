@@ -4,11 +4,42 @@
  * - openai: OPENAI_API_KEY / OPENAI_BASE_URL(互換エンドポイント可)
  * - anthropic: ANTHROPIC_API_KEY
  * - mock: ローカル開発・テスト用の決定的な応答(APIキー不要)
+ *
+ * 役割ごとに有効・無効を切り替えられる(aiRoleEnabled)。
+ * 2026-11 の運用判断で write(記事生成)と translate(翻訳)を既定で停止している。
+ * 記事は人手で執筆する方針のため。再開するには環境変数へ "true" を設定する。
  */
 
 export type AiRole = "write" | "translate" | "moderate";
 
 export class AiError extends Error {}
+
+/** 無効化された役割が呼ばれた。課金が発生しないための最終防壁 */
+export class AiDisabledError extends AiError {}
+
+const ROLE_ENV_VAR: Record<AiRole, string> = {
+  write: "AI_WRITE_ENABLED",
+  translate: "AI_TRANSLATE_ENABLED",
+  moderate: "AI_MODERATE_ENABLED",
+};
+
+/**
+ * 役割別の既定値。write / translate は運用判断で停止中のため false。
+ * moderate(ファン投稿スクリーニング・固有名詞抽出)は軽量モデルで
+ * 投稿の安全性に直結するため有効のまま。
+ */
+const ROLE_ENABLED_BY_DEFAULT: Record<AiRole, boolean> = {
+  write: false,
+  translate: false,
+  moderate: true,
+};
+
+/** その役割の AI 呼び出しが許可されているか。未設定なら役割ごとの既定値に従う */
+export function aiRoleEnabled(role: AiRole): boolean {
+  const raw = process.env[ROLE_ENV_VAR[role]]?.trim();
+  if (!raw) return ROLE_ENABLED_BY_DEFAULT[role];
+  return /^(1|true|on|yes)$/i.test(raw);
+}
 
 function providerName(): string {
   return process.env.AI_PROVIDER || (process.env.ANTHROPIC_API_KEY ? "anthropic" : "openai");
@@ -43,8 +74,18 @@ export type AiCompleteInput = {
   maxTokens?: number;
 };
 
-/** 単発のテキスト補完。json: true の場合も戻り値は文字列(呼び出し側で parse) */
+/**
+ * 単発のテキスト補完。json: true の場合も戻り値は文字列(呼び出し側で parse)
+ *
+ * 無効な役割はここで例外にする。呼び出し側は aiRoleEnabled() で先に判定して
+ * 正常系としてスキップする責務があり、ここは漏れを課金に変えないための防壁。
+ */
 export async function aiComplete(input: AiCompleteInput): Promise<string> {
+  if (!aiRoleEnabled(input.role)) {
+    throw new AiDisabledError(
+      `AI role "${input.role}" is disabled (${ROLE_ENV_VAR[input.role]})`
+    );
+  }
   const p = providerName();
   if (p === "mock") return mockComplete(input);
   if (p === "anthropic") return anthropicComplete(input);

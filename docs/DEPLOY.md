@@ -166,8 +166,35 @@ pnpm db:seed:prod
    - **プレスリリース源**(「プレスリリース源」にチェック)= 例 apocwire アニメカテゴリー。
      原文を press-release へ即時公開 + 独自AI記事化して各カテゴリーへ振り分け
 3. Cron はデプロイ即有効(`vercel.json`):
-   - 毎分: 予約公開リリース / 10分毎: RSS収集 / JST 9・15・21時: 記事生成 /
-     2分毎: 翻訳・記事化ジョブ / JST 3時: 用語監査 / 月曜0時(JST): 週次プライズ集計
+   - 毎分: 予約公開リリース / 10分毎: RSS収集 / 2分毎: ジョブキュー drain /
+     JST 3時: 用語監査 / 月曜0時(JST): 週次プライズ集計
+   - ⚠ **記事生成 cron(`/api/cron/generate`)は 2026-11 に停止**(下記)
+
+### ⚠ AI の記事生成と翻訳は停止中(2026-11)
+
+記事を人手で執筆する運用判断により、以下を停止している。
+
+| 役割 | 環境変数 | 既定 | 停止すると |
+|---|---|---|---|
+| 記事生成 | `AI_WRITE_ENABLED` | 無効 | 自動記事が増えない / PR は原文のみ公開 |
+| 翻訳 | `AI_TRANSLATE_ENABLED` | 無効 | **新しい記事が公開サイトに出ない**(下記) |
+| モデレーション・固有名詞抽出 | `AI_MODERATE_ENABLED` | 有効 | 投稿の一次審査が人手のみに |
+
+- `/api/cron/generate` は `vercel.json` から外してある(ルート自体は残っており、
+  再開時は cron を戻す)。管理画面の手動実行もフラグで封じられ、
+  `skippedDisabled: true` を返す
+- **翻訳停止中は手で書いた記事が公開されない。** 公開判定が「記事が published」かつ
+  「そのロケールの翻訳が `approved` か `machine`」であり、`ja` は非公開ロケールのため
+  (§2.1 / §4.2)。**既存の公開記事は既存の翻訳が残るため影響を受けない**
+- 翻訳ジョブは積まれず(`enqueueLocaleTranslations` が 0 を返す)、
+  実行されても `skipped_disabled` を返す。dead-letter には溜まらない
+- 再開するには Vercel の環境変数に `AI_TRANSLATE_ENABLED="true"`
+  (記事生成も戻すなら `AI_WRITE_ENABLED="true"`)を設定して Redeploy し、
+  `/api/cron/generate` を `vercel.json` に戻す
+- **AI の課金をゼロにしたい場合は `AI_MODERATE_ENABLED="false"` も設定する。**
+  これが残っている間はファン投稿のスクリーニングと固有名詞抽出で軽量モデルを呼ぶ
+- `/api/cron/ingest`(RSS収集)と `/api/cron/glossary-audit`(用語監査)は
+  AI を呼ばないため課金には影響しない。ただし ingest は下書きと画像を増やし続ける
 4. **Google Analytics / Search Console 連携** → 手順は [`docs/ANALYTICS.md`](./ANALYTICS.md)
    - GA4: 測定ID を `NEXT_PUBLIC_GA_ID` に設定 → **Redeploy**(`NEXT_PUBLIC_*` はビルド時埋め込み)
    - Search Console: Cloudflare の DNS TXT で**ドメインプロパティ**を認証(`/` が `/en` へ 307 するため

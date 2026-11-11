@@ -464,12 +464,18 @@ huandaonews の実装を多言語へ拡張する。
 |---|---|---|
 | `/api/cron/publish` | `* * * * *` | 予約公開のリリース |
 | `/api/cron/ingest` | `*/10 * * * *` | ソース収集(RSS等) |
-| `/api/cron/generate` | `0 0,6,12 * * *` (JST 9/15/21時) | 日本語マスター記事の生成 |
+| ~~`/api/cron/generate`~~ | — | 日本語マスター記事の生成。**2026-11 に停止**(下記) |
 | `/api/cron/jobs` | `*/2 * * * *` | ジョブキュー drain(翻訳・再翻訳・モデレーション) |
 | `/api/cron/glossary-audit` | `0 18 * * *` | 公開記事の用語表記監査、揺れ検出 |
 | `/api/cron/prize` | `0 15 * * 0` (JST 月曜0時) | 週次集計 → 受賞候補を編集部へ提示 |
 
 - cron は `CRON_SECRET` による認証を **fail-closed**(未設定なら実行しない)で保護。huandaonews の `src/lib/cron-auth.ts` を踏襲
+- ⚠ **2026-11 の運用判断で AI の記事生成(`write`)と翻訳(`translate`)を停止している。**
+  記事は人手で執筆する方針。役割別フラグ `AI_WRITE_ENABLED` / `AI_TRANSLATE_ENABLED` /
+  `AI_MODERATE_ENABLED`(`src/lib/ai/provider.ts` の `aiRoleEnabled`)で制御し、
+  既定は write=無効 / translate=無効 / moderate=有効。
+  **翻訳停止中は §4.2 の公開判定により新規記事が公開サイトに出ない**(`ja` は非公開ロケール)。
+  本書の §4・§6 は再開時の仕様として維持する。運用手順は `docs/DEPLOY.md` STEP 8
 - 監視: ジョブ失敗数・翻訳 `needs_review` 滞留数・pending 用語数をダッシュボードに常時表示
 
 ### 環境変数(`.env.example` に追記)

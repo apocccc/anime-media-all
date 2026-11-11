@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { JSONContent } from "@tiptap/core";
 import type { Locale as DbLocale } from "@prisma/client";
-import { aiCompleteJson, modelForRole } from "@/lib/ai/provider";
+import { aiCompleteJson, aiRoleEnabled, modelForRole } from "@/lib/ai/provider";
 import {
   applyTranslations,
   changedBlockIndexes,
@@ -89,7 +89,12 @@ function textOfDoc(doc: JSONContent): string {
 }
 
 export type TranslateArticleResult = {
-  status: "machine" | "needs_review" | "skipped_excluded" | "skipped_human";
+  status:
+    | "machine"
+    | "needs_review"
+    | "skipped_excluded"
+    | "skipped_human"
+    | "skipped_disabled";
   violations: number;
 };
 
@@ -101,6 +106,12 @@ export async function translateArticle(
   articleId: string,
   locale: DbLocale
 ): Promise<TranslateArticleResult> {
+  // 翻訳の停止(2026-11)。既存の翻訳はそのまま残るため公開中の記事は影響を受けない。
+  // 新しい記事はこのロケールの翻訳が作られないため公開対象にならない。
+  if (!aiRoleEnabled("translate")) {
+    return { status: "skipped_disabled", violations: 0 };
+  }
+
   const article = await prisma.article.findUnique({
     where: { id: articleId },
     include: { translations: true },
@@ -263,6 +274,10 @@ export async function prepareAndQueueTranslations(articleId: string): Promise<nu
  * excluded / human 翻訳のロケールはジョブ側でスキップされる。
  */
 export async function enqueueLocaleTranslations(articleId: string): Promise<number> {
+  // 翻訳が停止されている間はジョブを積まない。積むと drain 側で毎回スキップされ、
+  // キューと管理画面のジョブ一覧が無意味なレコードで埋まる。
+  if (!aiRoleEnabled("translate")) return 0;
+
   let queued = 0;
   const article = await prisma.article.findUnique({
     where: { id: articleId },

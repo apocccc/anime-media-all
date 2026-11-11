@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { aiCompleteJson, aiConfigured } from "@/lib/ai/provider";
+import { aiCompleteJson, aiConfigured, aiRoleEnabled } from "@/lib/ai/provider";
 import { fromDbLocale, PUBLIC_DB_LOCALES } from "@/lib/locale";
 
 /**
@@ -101,6 +101,9 @@ export async function aiScreenFanPost(postId: string): Promise<ModerationVerdict
 
 /** 投稿キャプションを各ロケールへ翻訳する(原文は常に併記されるため付加情報) */
 export async function translateFanPost(postId: string): Promise<number> {
+  // 翻訳の停止(2026-11)。原文は常に表示されるため投稿自体は閲覧できる(§8.3)
+  if (!aiRoleEnabled("translate")) return 0;
+
   const post = await prisma.fanPost.findUnique({ where: { id: postId } });
   if (!post) throw new Error(`FanPost not found: ${postId}`);
   if (!post.bodyOriginal.trim()) return 0;
